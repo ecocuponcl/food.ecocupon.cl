@@ -24,6 +24,7 @@ app = FastAPI(title="Ecocupon Payment Agent", version="1.0.0")
 # ── Config ──────────────────────────────────────────────
 FLOW_API_KEY = os.getenv("FLOW_API_KEY")
 FLOW_SECRET_KEY = os.getenv("FLOW_SECRET_KEY")
+FLOW_BUTTON_TOKEN = os.getenv("FLOW_BUTTON_TOKEN", "zb21aa68cfd8df13c6030369d9946745810db853")
 FLOW_API_URL = os.getenv("FLOW_API_URL", "https://www.flow.cl/api/payment/create")
 CONFIRM_URL = os.getenv("CONFIRM_URL", "https://food.ecocupon.cl/kiosk/payment_webhook")
 RETURN_URL = os.getenv("RETURN_URL", "https://food.ecocupon.cl/kiosk/return")
@@ -34,7 +35,9 @@ if not FLOW_API_KEY or not FLOW_SECRET_KEY:
 
 def sign_flow_request(params: dict) -> str:
     """Sign Flow request parameters with HMAC-SHA256."""
-    sorted_params = sorted(params.items())
+    # Remove signature if present
+    params_to_sign = {k: v for k, v in params.items() if k != "signature"}
+    sorted_params = sorted(params_to_sign.items())
     string_to_sign = "&".join(f"{k}={v}" for k, v in sorted_params)
     signature = hmac.new(
         FLOW_SECRET_KEY.encode(),
@@ -79,48 +82,16 @@ def health():
 
 @app.post("/create_payment", response_model=PaymentResponse)
 def create_payment(req: PaymentRequest):
-    """Create a payment via Flow API and return the checkout URL."""
+    """Return Flow payment button URL."""
 
-    if not FLOW_API_KEY or not FLOW_SECRET_KEY:
-        raise HTTPException(status_code=500, detail="FLOW credentials not configured")
+    if not FLOW_BUTTON_TOKEN:
+        raise HTTPException(status_code=500, detail="FLOW_BUTTON_TOKEN not configured")
 
-    subject = req.subject or f"Pedido {req.order_id}"
+    payment_url = f"https://www.flow.cl/btn.php?token={FLOW_BUTTON_TOKEN}"
 
-    payload = {
-        "apiKey": FLOW_API_KEY,
-        "amount": req.amount,
-        "subject": subject,
-        "currency": "CLP",
-        "returnUrl": RETURN_URL,
-        "confirmUrl": CONFIRM_URL,
-    }
+    logger.info(f"Payment URL generated: order={req.order_id}, amount={req.amount}")
 
-    if req.email:
-        payload["payerEmail"] = req.email
-
-    # Sign request
-    payload["signature"] = sign_flow_request(payload)
-
-    logger.info(f"Creating payment: order={req.order_id}, amount={req.amount}")
-
-    try:
-        resp = requests.post(FLOW_API_URL, json=payload, timeout=15)
-        resp.raise_for_status()
-        data = resp.json()
-    except requests.RequestException as e:
-        logger.error(f"Flow API error: {e}")
-        raise HTTPException(status_code=502, detail=f"Flow API error: {e}")
-
-    payment_url = data.get("url")
-    token = data.get("token")
-
-    if not payment_url or not token:
-        logger.error(f"Unexpected Flow response: {data}")
-        raise HTTPException(status_code=502, detail="Invalid response from Flow API")
-
-    logger.info(f"Payment created: token={token}, url={payment_url}")
-
-    return PaymentResponse(url=payment_url, token=token)
+    return PaymentResponse(url=payment_url, token=FLOW_BUTTON_TOKEN)
 
 
 @app.post("/webhook/flow")
