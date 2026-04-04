@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoCupon — Circular Economy Infrastructure</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>♻️</text></svg>">
+    <style>
+        :root {
+            --primary: #059669;
+            --primary-dark: #047857;
+            --bg: #0f172a;
+            --bg-light: #1e293b;
+            --text: #e2e8f0;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --accent: #f59e0b;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+        
+        .container { max-width: 1200px; margin: 0 auto; display: flex; min-height: 100vh; }
+        
+        /* Sidebar */
+        .sidebar { width: 280px; background: var(--bg-light); border-right: 1px solid var(--border); padding: 24px; position: fixed; height: 100vh; overflow-y: auto; }
+        .sidebar-logo { display: flex; align-items: center; gap: 12px; margin-bottom: 32px; }
+        .sidebar-logo span { font-size: 24px; }
+        .sidebar-logo h1 { font-size: 18px; font-weight: 700; color: var(--text); }
+        .sidebar-logo small { display: block; font-size: 11px; color: var(--text-muted); font-weight: 400; }
+        
+        .nav-section { margin-bottom: 24px; }
+        .nav-section h3 { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-muted); margin-bottom: 8px; }
+        .nav-section a { display: block; padding: 6px 12px; color: var(--text); text-decoration: none; border-radius: 6px; font-size: 14px; transition: all 0.2s; }
+        .nav-section a:hover, .nav-section a.active { background: rgba(5, 150, 105, 0.15); color: #10b981; }
+        
+        /* Main content */
+        .main { margin-left: 280px; flex: 1; padding: 48px 64px; max-width: 900px; }
+        
+        h1 { font-size: 36px; margin-bottom: 8px; }
+        h1 .emoji { margin-right: 12px; }
+        .subtitle { font-size: 18px; color: var(--text-muted); margin-bottom: 32px; border-bottom: 1px solid var(--border); padding-bottom: 24px; }
+        h2 { font-size: 24px; margin: 40px 0 16px; color: #10b981; }
+        h3 { font-size: 18px; margin: 24px 0 12px; color: #10b981; }
+        p { margin-bottom: 16px; }
+        code { background: var(--bg-light); padding: 2px 6px; border-radius: 4px; font-size: 14px; font-family: 'SF Mono', 'Fira Code', monospace; }
+        pre { background: var(--bg-light); padding: 16px 20px; border-radius: 8px; overflow-x: auto; margin: 16px 0; border: 1px solid var(--border); }
+        pre code { background: none; padding: 0; }
+        
+        table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+        th, td { padding: 12px 16px; border: 1px solid var(--border); text-align: left; }
+        th { background: var(--bg-light); font-weight: 600; }
+        
+        .callout { background: rgba(5, 150, 105, 0.1); border-left: 4px solid var(--primary); padding: 16px 20px; border-radius: 0 8px 8px 0; margin: 24px 0; }
+        .callout strong { color: #10b981; }
+        
+        .badge { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+        .badge-success { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+        .badge-warn { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+        
+        .hero-card { background: linear-gradient(135deg, rgba(5, 150, 105, 0.1), rgba(16, 185, 129, 0.05)); border: 1px solid var(--border); border-radius: 12px; padding: 32px; margin: 24px 0; }
+        .hero-card h2 { margin-top: 0; }
+        
+        a { color: #10b981; }
+        
+        @media (max-width: 768px) {
+            .sidebar { display: none; }
+            .main { margin-left: 0; padding: 24px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <span>♻️</span>
+                <h1>EcoCupon<small>Circular Economy Infra</small></h1>
+            </div>
+            
+            <div class="nav-section">
+                <h3>Overview</h3>
+                <a href="#" class="active">Introduction</a>
+                <a href="#workflow">Workflow</a>
+                <a href="#architecture">Architecture</a>
+            </div>
+            <div class="nav-section">
+                <h3>Data Models</h3>
+                <a href="#models/recycle_item">recycle.item</a>
+                <a href="#models/recycle_event">recycle.event</a>
+                <a href="#models/eco_wallet">eco.wallet</a>
+                <a href="#models/cashback">cashback.transaction</a>
+            </div>
+            <div class="nav-section">
+                <h3>API</h3>
+                <a href="#api/scan_qr">POST /kiosk/scan_qr</a>
+                <a href="#api/confirm">POST /kiosk/recycle/confirm</a>
+                <a href="#api/truck">POST /kiosk/recycle/truck_confirm</a>
+                <a href="#api/wallet">POST /kiosk/recycle/wallet</a>
+            </div>
+            <div class="nav-section">
+                <h3>Security</h3>
+                <a href="#antifraud">Anti-Fraud System</a>
+                <a href="#qr">QR Specification</a>
+            </div>
+            <div class="nav-section">
+                <h3>Links</h3>
+                <a href="https://github.com/ecocuponcl/food.ecocupon.cl" target="_blank">GitHub Repo</a>
+                <a href="https://food.ecocupon.cl/kiosk" target="_blank">Live Kiosk</a>
+                <a href="https://docs.smarterbot.cl" target="_blank">SmarterBOT Docs</a>
+            </div>
+        </aside>
+
+        <main class="main">
+            <h1><span class="emoji">♻️</span>EcoCupon</h1>
+            <p class="subtitle">Digital infrastructure for circular economy — turning waste into cashback through QR validation, anti-fraud systems, and sovereign wallets.</p>
+            
+            <div class="hero-card">
+                <h2>🔥 "Tus clientes reciben dinero real por reciclar lo que compran."</h2>
+                <p>EcoCupon is a vertical implementation of the <a href="https://docs.smarterbot.cl">SmarterBOT</a> framework. It provides businesses with payment integration (Flow.cl), recycling validation, and automatic cashback — all running on local-first infrastructure.</p>
+            </div>
+
+            <h2 id="workflow">Functional Workflow</h2>
+            <ol style="padding-left:20px;">
+                <li><strong>🛒 Purchase</strong> — Customer buys via Flow.cl payment gateway</li>
+                <li><strong>📦 QR Generation</strong> — Each product gets a unique QR code: <code>ECO-{timestamp}-{uuid}</code> with HMAC signature</li>
+                <li><strong>📷 Scan</strong> — Customer scans QR on packaging after consumption</li>
+                <li><strong>🔍 Validation</strong> — Multi-factor: image SHA256 hash, GPS zone, min delay hours</li>
+                <li><strong>🚛 Confirmation</strong> — Truck/drop-point confirms physical pickup</li>
+                <li><strong>💰 Cashback</strong> — Credits deposited in <code>eco.wallet</code> — usable in-store or withdrawable</li>
+            </ol>
+
+            <h2 id="architecture">Architecture</h2>
+            <pre><code>┌─────────────────────────────────────────────────────────┐
+│                 EcoCupon Platform                        │
+│                                                          │
+│  Odoo 19 (food_kiosk + ecocupon_recycle)                │
+│  ├── /kiosk              → Kiosk UI                      │
+│  ├── /kiosk/create_order → Payment initiation            │
+│  ├── /kiosk/scan_qr      → QR validation                 │
+│  ├── /kiosk/recycle/confirm → Admin/truck validation     │
+│  └── /kiosk/recycle/wallet  → Balance query             │
+│                                                          │
+│  FastAPI Agent (:9000)                                   │
+│  ├── /create_payment     → Flow.cl gateway               │
+│  ├── /scan               → Recycle scan proxy            │
+│  └── /health             → Health check                  │
+│                                                          │
+│  Supabase (rjfcmmzjlguiititkmyh)                        │
+│  ├── 46 existing tables + 8 recycle tables              │
+│  └── eco.wallet, recycle.event, recycle.item            │
+│                                                          │
+│  Caddy (HTTPS) → food.ecocupon.cl → localhost:8070      │
+│                 → agent.food.ecocupon.cl → localhost:9001│
+└─────────────────────────────────────────────────────────┘</code></pre>
+
+            <h2 id="models/recycle_item">recycle.item</h2>
+            <p>Each recyclable packaging unit with a unique QR code linked to a real purchase.</p>
+            <table>
+                <tr><th>Field</th><th>Type</th><th>Description</th></tr>
+                <tr><td><code>qr_code</code></td><td>Char (unique)</td><td><code>ECO-{timestamp}-{uuid}</code> format</td></tr>
+                <tr><td><code>qr_hash</code></td><td>Char (indexed)</td><td>SHA256 first 16 chars of QR code</td></tr>
+                <tr><td><code>qr_signature</code></td><td>Char</td><td>HMAC-SHA256 signature for authenticity</td></tr>
+                <tr><td><code>order_id</code></td><td>Many2one (sale.order)</td><td>Link to original purchase</td></tr>
+                <tr><td><code>status</code></td><td>Selection</td><td><code>issued</code>, <code>scanned</code>, <code>validated</code>, <code>cashback_paid</code>, <code>expired</code>, <code>fraud_flagged</code></td></tr>
+                <tr><td><code>issued_at</code></td><td>Datetime</td><td>When the product was sold</td></tr>
+                <tr><td><code>expires_at</code></td><td>Datetime</td><td>30-day recycling window</td></tr>
+                <tr><td><code>min_delay_hours</code></td><td>Float</td><td>Min hours between purchase and recycle (default: 1)</td></tr>
+                <tr><td><code>image_hash</code></td><td>Char</td><td>SHA256 hash of validation photo (duplicate detection)</td></tr>
+            </table>
+
+            <h2 id="models/recycle_event">recycle.event</h2>
+            <p>Each scan/validation attempt with anti-fraud evidence.</p>
+            <table>
+                <tr><th>Field</th><th>Type</th><th>Description</th></tr>
+                <tr><td><code>type</code></td><td>Selection</td><td><code>scan</code>, <code>photo_upload</code>, <code>gps_check</code>, <code>truck_pickup</code>, <code>validated</code></td></tr>
+                <tr><td><code>status</code></td><td>Selection</td><td><code>pending</code>, <code>validated</code>, <code>rejected</code>, <code>fraud</code></td></tr>
+                <tr><td><code>image_hash</code></td><td>Char (indexed)</td><td>Duplicate photo detection</td></tr>
+                <tr><td><code>validation_source</code></td><td>Selection</td><td><code>customer</code>, <code>truck</code>, <code>drop_point</code>, <code>admin</code></td></tr>
+            </table>
+
+            <h2 id="models/eco_wallet">eco.wallet</h2>
+            <p>Internal wallet separated from Flow.cl — cashback is credited here, Flow.cl only used for withdrawals.</p>
+            <div class="callout">
+                <strong>💡 Design Decision:</strong> Flow.cl is used only for payments and withdrawals. The eco.wallet handles all cashback internally, avoiding transaction costs and keeping accounting clean.
+            </div>
+
+            <h2 id="antifraud">Anti-Fraud System</h2>
+            <table>
+                <tr><th>Layer</th><th>Method</th><th>Prevents</th></tr>
+                <tr><td>QR Unique</td><td>Token per packaging, single-use</td><td>Reusing same QR code</td></tr>
+                <tr><td>Photo + Hash</td><td>SHA256 image fingerprint</td><td>Duplicate photos, screenshots</td></tr>
+                <tr><td>Time Delay</td><td>Min hours between purchase and recycle</td><td>Recycling without buying</td></tr>
+                <tr><td>Daily Limit</td><td>Max cashback per user per day</td><td>Recycling farms</td></tr>
+                <tr><td>GPS Zone</td><td>Validated against known drop points</td><td>Remote fake validation</td></tr>
+                <tr><td>Truck Confirm</td><td>Physical pickup by registered truck</td><td>False remote validation</td></tr>
+            </table>
+
+            <h2 id="qr">QR Specification</h2>
+            <p>Format: <code>ECO-{YYMMDDHHMM}-{uuid6}</code></p>
+            <pre><code>Example: ECO-2604041530-a3f2b1
+
+Structure:
+  ECO-          → EcoCupon prefix
+  2604041530    → Timestamp (YYMMDDHHMM)
+  a3f2b1        → UUID first 6 chars
+
+Cryptographic:
+  - SHA256 hash of QR code → stored in qr_hash
+  - HMAC-SHA256(qr_code:order_id:product_id, secret) → stored in qr_signature
+  - Verified on every scan against system secret</code></pre>
+
+            <h2 id="api/scan_qr">POST /kiosk/scan_qr</h2>
+            <pre><code>{
+  "jsonrpc": "2.0",
+  "method": "call",
+  "params": {
+    "qr_code": "ECO-2604041530-a3f2b1",
+    "photo_url": "https://...",
+    "gps_lat": -33.4489,
+    "gps_lon": -70.6693,
+    "image_hash": "sha256..."
+  }
+}
+
+// Response (validated):
+{
+  "success": true,
+  "validated": true,
+  "cashback": 100,
+  "wallet_balance": 450,
+  "item_name": "Sixpack Cerveza",
+  "validation_method": "hybrid"
+}
+
+// Response (pending):
+{
+  "pending": true,
+  "event_id": 123,
+  "message": "Reciclaje registrado. Pendiente de validación."
+}</code></pre>
+
+            <h2 id="api/truck">POST /kiosk/recycle/truck_confirm</h2>
+            <pre><code>{
+  "jsonrpc": "2.0",
+  "method": "call",
+  "params": {
+    "truck_id": 1,
+    "qr_codes": ["ECO-...", "ECO-..."]
+  }
+}
+
+// Response:
+{
+  "total": 6,
+  "cashback_paid": 600,
+  "items": [
+    {"qr_code": "ECO-...", "cashback": 100, "wallet_balance": 450}
+  ]
+}</code></pre>
+
+            <div class="callout">
+                <strong>📦 Data Sovereignty:</strong> All transaction logs are backed up in <a href="https://github.com/HDFGroup/hdf5">HDF5</a> format for long-term auditability without cloud dependency.
+            </div>
+
+            <p style="margin-top:48px;padding-top:24px;border-top:1px solid var(--border);color:var(--text-muted);font-size:14px;">
+                Powered by <a href="https://docs.smarterbot.cl">SmarterBOT</a> · <a href="https://github.com/ecocuponcl/food.ecocupon.cl">Source Code</a> · Odoo 19 · Flow.cl · Supabase
+            </p>
+        </main>
+    </div>
+</body>
+</html>
