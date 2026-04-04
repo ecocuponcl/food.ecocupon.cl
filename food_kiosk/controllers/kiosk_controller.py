@@ -1,5 +1,6 @@
 from odoo import http
 from odoo.http import request
+import os
 import requests
 import logging
 import hashlib
@@ -7,8 +8,8 @@ import hmac
 
 _logger = logging.getLogger(__name__)
 
-# Configurable via Odoo settings or env
-AGENT_URL = "https://agent.food.ecocupon.cl"
+# Agent URL — local Docker service (falls back to external if needed)
+AGENT_URL = os.environ.get("FOOD_AGENT_URL", "http://agent:9000")
 
 
 class FoodKioskController(http.Controller):
