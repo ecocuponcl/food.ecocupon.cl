@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- LANDING PAGE — Entry point with CTA        -->
+    <!-- ═══════════════════════════════════════════ -->
+    <template id="landing_page" name="EcoCupon Food Landing">
+        <t t-call="web.layout">
+            <t t-set="head">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+                <style>
+                    :root {
+                        --primary: #10b981;
+                        --primary-dark: #059669;
+                        --bg: #0f172a;
+                        --card: #1e293b;
+                        --text: #e2e8f0;
+                        --muted: #94a3b8;
+                        --border: #334155;
+                        --accent: #f59e0b;
+                    }
+                    * { margin: 0; padding: 0; box-sizing: border-box; }
+                    body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); }
+
+                    /* Hero */
+                    .hero {
+                        max-width: 800px;
+                        margin: 0 auto;
+                        padding: 60px 20px 40px;
+                        text-align: center;
+                    }
+                    .hero h1 {
+                        font-size: clamp(28px, 5vw, 42px);
+                        margin-bottom: 12px;
+                        line-height: 1.2;
+                    }
+                    .hero h1 span { color: var(--primary); }
+                    .hero .subtitle {
+                        font-size: 18px;
+                        color: var(--muted);
+                        margin-bottom: 32px;
+                        line-height: 1.5;
+                    }
+
+                    /* CTA Button */
+                    .cta-button {
+                        display: inline-block;
+                        padding: 18px 48px;
+                        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+                        color: white;
+                        text-decoration: none;
+                        font-size: 20px;
+                        font-weight: 800;
+                        border-radius: 16px;
+                        transition: transform 0.2s, box-shadow 0.2s;
+                        box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
+                    }
+                    .cta-button:hover {
+                        transform: scale(1.05);
+                        box-shadow: 0 8px 30px rgba(16, 185, 129, 0.5);
+                    }
+                    .cta-button .arrow { margin-left: 8px; }
+
+                    /* Products grid */
+                    .products-section {
+                        max-width: 800px;
+                        margin: 40px auto;
+                        padding: 0 20px;
+                    }
+                    .products-section h2 {
+                        text-align: center;
+                        font-size: 24px;
+                        margin-bottom: 24px;
+                    }
+                    .products-grid {
+                        display: grid;
+                        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+                        gap: 16px;
+                    }
+                    .product-card {
+                        background: var(--card);
+                        border-radius: 16px;
+                        padding: 20px;
+                        text-align: center;
+                        border: 2px solid transparent;
+                        transition: border-color 0.2s;
+                    }
+                    .product-card:hover { border-color: var(--primary); }
+                    .product-emoji { font-size: 48px; margin-bottom: 8px; }
+                    .product-name { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
+                    .product-price {
+                        font-size: 24px;
+                        font-weight: 800;
+                        color: var(--primary);
+                    }
+
+                    /* Coupon banner */
+                    .coupon-banner {
+                        background: linear-gradient(135deg, #ff4d4d, #ff6b6b);
+                        color: white;
+                        padding: 14px 20px;
+                        text-align: center;
+                        font-weight: 700;
+                        font-size: 16px;
+                    }
+                    .coupon-banner strong { font-size: 20px; }
+
+                    /* Features */
+                    .features {
+                        max-width: 800px;
+                        margin: 40px auto;
+                        padding: 0 20px;
+                        display: grid;
+                        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                        gap: 16px;
+                    }
+                    .feature {
+                        background: var(--card);
+                        padding: 20px;
+                        border-radius: 12px;
+                        text-align: center;
+                    }
+                    .feature-icon { font-size: 32px; margin-bottom: 8px; }
+                    .feature h3 { font-size: 16px; margin-bottom: 4px; }
+                    .feature p { font-size: 14px; color: var(--muted); }
+
+                    /* Footer */
+                    .footer {
+                        text-align: center;
+                        padding: 32px 20px;
+                        color: var(--muted);
+                        font-size: 14px;
+                        border-top: 1px solid var(--border);
+                        margin-top: 40px;
+                    }
+                    .footer a { color: var(--primary); text-decoration: none; }
+                </style>
+            </t>
+            <body>
+                <!-- Coupon Banner -->
+                <div class="coupon-banner">
+                    🎉 30% descuento DELIVERY — Código: <strong>ECOCUPON30</strong>
+                </div>
+
+                <!-- Hero -->
+                <div class="hero">
+                    <h1>Pide tus hamburguesas <span>a domicilio</span></h1>
+                    <p class="subtitle">
+                        🍔 2 hamburguesas completas + delivery por solo <strong>$6.900</strong><br/>
+                        Haz tu pedido ahora y recíbelo en tu casa
+                    </p>
+                    <a href="/kiosk" class="cta-button">
+                        🛒 PEDIR AHORA <span class="arrow">→</span>
+                    </a>
+                </div>
+
+                <!-- Products -->
+                <div class="products-section">
+                    <h2>🍽️ Nuestro Menú</h2>
+                    <div class="products-grid">
+                        <t t-foreach="products" t-as="product">
+                            <div class="product-card">
+                                <t t-if="'hamburguesa' in product.name.lower()">
+                                    <div class="product-emoji">🍔</div>
+                                </t>
+                                <t t-elif="'delivery' in product.name.lower()">
+                                    <div class="product-emoji">🚚</div>
+                                </t>
+                                <t t-elif="'papas' in product.name.lower()">
+                                    <div class="product-emoji">🍟</div>
+                                </t>
+                                <t t-elif="'bebida' in product.name.lower()">
+                                    <div class="product-emoji">🥤</div>
+                                </t>
+                                <t t-else="">
+                                    <div class="product-emoji">🍽️</div>
+                                </t>
+                                <div class="product-name" t-esc="product.name"/>
+                                <div class="product-price">
+                                    $<t t-esc="'{:,.0f}'.format(product.lst_price).replace(',', '.')"/>
+                                </div>
+                            </div>
+                        </t>
+                    </div>
+                </div>
+
+                <!-- Features -->
+                <div class="features">
+                    <div class="feature">
+                        <div class="feature-icon">📱</div>
+                        <h3>Pedido fácil</h3>
+                        <p>Elige tus productos y paga en segundos</p>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon">💳</div>
+                        <h3>Pago seguro</h3>
+                        <p>Paga con Flow.cl de forma segura</p>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon">🚚</div>
+                        <h3>Delivery rápido</h3>
+                        <p>Entrega en Estación Central</p>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon">♻️</div>
+                        <h3>Recicla y gana</h3>
+                        <p>Recicla tus envases y recibe cashback</p>
+                    </div>
+                </div>
+
+                <!-- Bottom CTA -->
+                <div class="hero" style="padding-top: 20px;">
+                    <a href="/kiosk" class="cta-button">
+                        🛒 IR AL KIOSKO <span class="arrow">→</span>
+                    </a>
+                </div>
+
+                <!-- Footer -->
+                <div class="footer">
+                    Powered by <a href="https://os.smarterbot.store">SmarterOS</a> ·
+                    <a href="/kiosk/recycle">♻️ Reciclar</a> ·
+                    <a href="https://docs.ecocupon.cl">📊 Docs</a>
+                </div>
+            </body>
+        </t>
+    </template>
+</odoo>

@@ -3,8 +3,6 @@ from odoo.http import request
 import os
 import requests
 import logging
-import hashlib
-import hmac
 
 _logger = logging.getLogger(__name__)
 
@@ -13,6 +11,19 @@ AGENT_URL = os.environ.get("FOOD_AGENT_URL", "http://agent:9000")
 
 
 class FoodKioskController(http.Controller):
+
+    @http.route('/', type='http', auth='public', website=True)
+    def landing(self, **kw):
+        """Landing page — entry point with CTA to kiosk"""
+        products = request.env['product.product'].sudo().search([
+            ('type', '=', 'consu'),
+            ('sale_ok', '=', True),
+        ], order='name')
+        categories = request.env['product.public.category'].sudo().search([], order='sequence')
+        return request.render('food_kiosk.landing_page', {
+            'products': products,
+            'categories': categories,
+        })
 
     @http.route('/kiosk', type='http', auth='public', website=True)
     def kiosk_home(self, **kw):
@@ -93,12 +104,10 @@ class FoodKioskController(http.Controller):
         """Webhook from Flow.cl via agent — confirms payment."""
         _logger.info(f"Food Kiosk: payment_webhook received: {kw}")
 
-        # Flow.cl sends: token, status, commerce_order, amount, buyer_email, request_date
         status = kw.get('status')
         commerce_order = kw.get('commerce_order', '')
         order_id = kw.get('order_id')
 
-        # Try to find order by client_order_ref (commerce_order)
         order = None
         if commerce_order:
             order = request.env['sale.order'].sudo().search(
@@ -114,19 +123,17 @@ class FoodKioskController(http.Controller):
                 _logger.info(f"Food Kiosk: Order {order.name} confirmed via webhook")
             return "ok"
 
-        _logger.warning(f"Food Kiosk: Webhook processing skipped - order={order}, status={status}")
+        _logger.warning(f"Food Kiosk: Webhook skipped - order={order}, status={status}")
         return "ok"
 
     @http.route('/kiosk/return', type='http', auth='public', website=True)
     def payment_return(self, **kw):
-        """Return page after Flow payment — show status."""
+        """Return page after Flow payment."""
         token = kw.get('token', '')
         order_id = kw.get('order_id')
-
         order = None
         if order_id:
             order = request.env['sale.order'].sudo().browse(int(order_id))
-
         return request.render('food_kiosk.kiosk_return', {
             'order': order,
             'token': token,
@@ -135,7 +142,6 @@ class FoodKioskController(http.Controller):
 
     @http.route('/kiosk/order/<int:order_id>', type='http', auth='public', website=True)
     def kiosk_order_status(self, order_id, **kw):
-        """Check order status page."""
         order = request.env['sale.order'].sudo().browse(order_id)
         if not order or order.id != order_id:
             return request.render('food_kiosk.kiosk_error', {'message': 'Order not found'})

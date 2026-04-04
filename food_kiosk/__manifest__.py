@@ -20,6 +20,7 @@ Kiosk mode for touch-screen ordering with:
     "data": [
         "data/kiosk_data.xml",
         "security/ir.model.access.csv",
+        "views/food_kiosk_landing.xml",
         "views/food_kiosk_templates.xml",
         "views/food_kiosk_config_settings_views.xml",
     ],
