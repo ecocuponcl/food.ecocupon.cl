@@ -58,6 +58,20 @@ class PaymentResponse(BaseModel):
 
 
 # ── Routes ──────────────────────────────────────────────
+@app.get("/")
+def root():
+    return {
+        "service": "Ecocupon Payment Agent",
+        "version": "1.0.0",
+        "endpoints": {
+            "GET /health": "Health check",
+            "POST /create_payment": "Create Flow payment",
+            "POST /webhook/flow": "Flow webhook receiver",
+            "GET /docs": "Swagger UI",
+        },
+    }
+
+
 @app.get("/health")
 def health():
     return {"status": "ok", "service": "ecocupon-agent"}
