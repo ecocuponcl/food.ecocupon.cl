@@ -1,25 +1,55 @@
-# 🚀 Food Ecocupon — Kiosk + Odoo + Flow.cl
+# 🌿 EcoCupon — IA Decision Engine
 
-Kiosk táctil para pedidos con pagos reales integrados via Flow.cl.
+> "Convierte cualquier activo en dinero o cashback automáticamente"
 
 ---
 
-## Arquitectura
+## 🧠 Motor de Arbitraje
 
 ```
-food.ecocupon.cl  →  VPS (Odoo 17 + Caddy)
-agent.food.ecocupon.cl  →  Cloudflare Tunnel  →  Mac (FastAPI Agent)  →  Flow.cl
+Input (foto/texto) → Agent /decide → n8n ejecuta → Supabase recuerda
 ```
 
-## Flujo de pago
+### 3 Verticales, 1 Cerebro
 
-1. Usuario selecciona productos en kiosko táctil
-2. Touch "Pagar" → Odoo crea orden
-3. Odoo → `agent.food.ecocupon.cl/create_payment`
-4. Agente → Flow.cl API
-5. Flow.cl devuelve URL de pago
-6. Usuario paga en navegador
-7. Flow.cl → webhook → Odoo confirma orden
+| Vertical | Input | Output |
+|---|---|---|
+| ♻️ **RECYCLE** | Foto envase + QR | Cashback wallet |
+| 🚗 **VEHICLE** | Patente + precio | Comprar / negociar / descartar |
+| 🍔 **KIOSK** | Compra food | QR envases → cashback |
+
+---
+
+## 🏗️ Arquitectura
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Caddy (HTTPS)                             │
+│  food.ecocupon.cl → Odoo:8069                                │
+│  agent.food.ecocupon.cl → Agent:9000                         │
+│  n8n.smarterbot.cl → n8n:5678                                │
+└─────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────┐
+│                  Agent /decide (cerebro)                     │
+│                                                              │
+│  LLM (OpenRouter) → scoring + reasoning                     │
+│  Rules fallback → pricing tables                             │
+│  Anti-fraud → limits + GPS + photo duplicate                │
+│                                                              │
+│  Output: JSON universal → n8n webhook                        │
+└─────────────────────────────────────────────────────────────┘
+         ↓              ↓              ↓
+┌─────────────┐ ┌─────────────┐ ┌─────────────┐
+│  Supabase   │ │     n8n     │ │  Telegram   │
+│  (memoria)  │ │  (event bus)│ │  (alertas)  │
+│             │ │             │ │             │
+│ events_log  │ │ route by    │ │ notifica    │
+│ wallets     │ │ decision    │ │ confirma    │
+│ recycle     │ │             │ │ reporta     │
+│ vehicles    │ │             │ │             │
+└─────────────┘ └─────────────┘ └─────────────┘
+```
 
 ---
 
@@ -27,137 +57,133 @@ agent.food.ecocupon.cl  →  Cloudflare Tunnel  →  Mac (FastAPI Agent)  →  F
 
 ```
 food.ecocupon.cl/
-├── food_kiosk/                    # Módulo Odoo
-│   ├── controllers/kiosk_controller.py   # /kiosk, /kiosk/create_order, /kiosk/payment_webhook
-│   ├── models/kiosk_config.py           # Settings configurables
-│   ├── views/food_kiosk_templates.xml   # QWeb templates UI
-│   ├── static/src/css/kiosk.css         # Estilos kiosk vertical
-│   ├── static/src/js/kiosk.js           # Cart + payment JS
-│   └── ...
-├── agent/                          # FastAPI Agent (Mac local)
-│   └── agent.py                    # Proxy Flow.cl API
-├── deploy/                         # VPS deployment
-│   ├── docker-compose.yml          # Odoo 17 + Postgres 16
-│   └── Caddyfile.snippet           # Caddy config
+├── agent.py                    # FastAPI — IA Decision Engine v3
+│   ├── POST /decide            # Universal decision endpoint
+│   ├── POST /fraud-check       # Standalone fraud check
+│   ├── POST /vehicle/evaluate  # Vehicle valuation
+│   ├── POST /recycle/validate  # Recycle → cashback
+│   ├── GET  /recycle/wallet    # Wallet balance
+│   └── GET  /recycle/stats     # Platform stats
+│
+├── supabase/
+│   └── schema.sql              # Full DB schema + RLS
+│
+├── n8n/
+│   └── webhook-handler.md      # n8n workflow spec
+│
+├── odoo/
+│   ├── food_kiosk/             # Kiosk module
+│   └── eco_recycle/            # Recycle + cashback module
+│
+├── .env.example
+├── requirements.txt
 └── README.md
 ```
 
 ---
 
-## 🖥️ Deploy VPS (Dokploy + Caddy)
+## 🧠 Agent Schema — JSON Universal
 
-### Odoo
-```bash
-cd /root/food-kiosk-deploy
-docker compose up -d
-```
-
-### Caddy
-```
-food.ecocupon.cl {
-    reverse_proxy localhost:8070
+```json
+{
+  "vertical": "RECYCLE | VEHICLE | KIOSK",
+  "intent": "EVALUATE | ACTION | SUPPORT",
+  "scoring": {
+    "confidence": 0.9,
+    "value_clp": 500,
+    "reasoning": "PET 500ml detectado, limpio"
+  },
+  "decision": "approve | reject | review | comprar | negociar | descartar",
+  "options": [
+    {"action": "cashback", "amount": 500, "label": "+$500 CLP"}
+  ],
+  "metadata": {
+    "event_id": "uuid",
+    "user_phone": "56912345678"
+  },
+  "next_step": "n8n_triggered",
+  "event_id": "uuid"
 }
 ```
 
-### DNS
-```
-food.ecocupon.cl  →  A  →  89.116.23.167  (nube gris, sin proxy CF)
-```
+---
+
+## 🛡️ Anti-Fraude
+
+| Capa | Método | Qué evita |
+|---|---|---|
+| **QR único** | Token por envase, un solo uso | Reutilizar |
+| **Límite diario** | Max $5.000 CLP / 10 reciclajes | Granjas |
+| **Tiempo mínimo** | 15 min entre compra y reciclaje | Sin compra |
+| **GPS clustering** | >5 usuarios mismo punto | Fake location |
+| **Foto duplicada** | Hash comparison | Reuse photos |
+| **LLM scoring** | IA detecta patrones anómalos | Fraude sofisticado |
 
 ---
 
-## 🧠 Agente (Mac local)
+## 🚀 Setup
 
+### Agent (Mac local)
 ```bash
-pip install fastapi uvicorn requests
-
-# agent.py
-from fastapi import FastAPI
-import requests
-
-app = FastAPI()
-FLOW_API = "https://www.flow.cl/api/payment/create"
-FLOW_KEY = "TU_API_KEY"
-
-@app.post("/create_payment")
-def create_payment(data: dict):
-    r = requests.post(FLOW_API, json={
-        "apiKey": FLOW_KEY,
-        "amount": data["amount"],
-        "subject": f"Pedido {data['order_id']}",
-        "return_url": "https://food.ecocupon.cl/kiosk/return",
-        "confirm_url": "https://food.ecocupon.cl/kiosk/payment_webhook"
-    })
-    res = r.json()
-    return {"url": res.get("url"), "token": res.get("token")}
-
-# Correr
-uvicorn agent:app --host 0.0.0.0 --port 9000
+cd /Users/mac/dev/2026/food.ecocupon.cl
+cp .env.example .env
+# Editar .env con credenciales
+pip install -r requirements.txt
+uvicorn agent:app --reload --port 9000
 ```
 
-### Cloudflare Tunnel
-```bash
-brew install cloudflared
-cloudflared tunnel login
-cloudflared tunnel create ecocupon-agent
-cloudflared tunnel run ecocupon-agent
+### Supabase
+```sql
+-- Run supabase/schema.sql in SQL Editor
+```
+
+### n8n
+```
+Import webhook-handler.md workflows
+Set webhook URL in .env
+```
+
+### Odoo
+```
+Copy odoo/eco_recycle/ to addons path
+Install module from Apps
 ```
 
 ---
 
-## ✅ Checklist
+## 📊 Endpoints
 
-- [x] Odoo corriendo con food_kiosk
-- [x] Caddy HTTPS configurado
-- [x] DNS apuntando al VPS
-- [x] Certificado SSL Let's Encrypt válido
-- [ ] Mac encendida + agent.py corriendo
-- [ ] Cloudflare Tunnel activo
-- [ ] Flow.cl API key configurada
-- [ ] `agent.food.ecocupon.cl` responde
-
----
-
-## Endpoints
-
-| Endpoint | Método | Auth | Descripción |
-|---|---|---|---|
-| `/kiosk` | GET | public | UI kiosko táctil |
-| `/kiosk/create_order` | POST JSON | public | Crear orden + pago Flow |
-| `/kiosk/payment_webhook` | POST | public | Confirmar pago |
-| `/kiosk/return` | GET | public | Página post-pago |
-| `/kiosk/order/<id>` | GET | public | Estado de orden |
+| Endpoint | Método | Descripción |
+|---|---|---|
+| `/decide` | POST | Universal decision (3 verticals) |
+| `/fraud-check` | POST | Standalone fraud scoring |
+| `/vehicle/evaluate` | POST | Vehicle valuation |
+| `/recycle/generate_qr` | POST | Generate QR tokens |
+| `/recycle/validate` | POST | Validate → cashback |
+| `/recycle/wallet/{phone}` | GET | Wallet balance |
+| `/recycle/wallet/{phone}/withdraw` | POST | Withdraw balance |
+| `/recycle/stats` | GET | Platform statistics |
+| `/create_payment` | POST | Flow payment URL |
+| `/health` | GET | Health + config status |
 
 ---
 
-## Acceso
+## 💰 Modelo de Negocio
 
-- **Kiosk**: `https://food.ecocupon.cl/kiosk`
-- **Admin Odoo**: `https://food.ecocupon.cl/web/login` (admin / admin123)
+| Plan | Precio | Incluye |
+|---|---|---|
+| **Básico** | $99.900/mes | Kiosk + Flow payments |
+| **Reciclaje** | $199.900/mes | + Cashback + Wallet + REP |
+| **Enterprise** | $399.900/mes | + Multi-sucursal + AI fraud |
 
-## Supabase (Source of Truth)
+---
 
-Project: `https://rjfcmmzjlguiititkmyh.supabase.co`
+## 🌐 URLs
 
-### Existing tables (46):
-tenants, users, clients, contracts, payments, messages, events, products, categories, accounts, subscriptions, trials, and more.
-
-### Food Kiosk tables (migration SQL):
-`supabase/001_food_kiosk_schema.sql` — food_kiosk_orders, food_kiosk_payments, food_kiosk_dte, food_kiosk_events
-
-### Tenant: ecocupon
-- ID: `471b0075-6409-473d-bb74-36517b7d7f74`
-- Name: EcoCupon Food Kiosk
-- Status: active
-
-## Chatwoot
-Compose: `/root/chatwoot/docker-compose.yml`
-Port: 3005 (needs Ruby 3.4 fix in image)
-
-## n8n Workflows (45 available)
-Directory: `/root/os.smarterbot.cl/n8n-workflows/`
-Key: `04-dte-facturacion.json`, `20-ecocupon-auto-response.json`, `ecocupon-odoo-emdash.json`
-
-## DTE/LibreDTE
-Compose: `/root/smarteros-runtime/dte/docker-compose.yml`
-Status: Ready — needs SII certificates (`firma.p12` + passphrase)
+| Servicio | URL |
+|---|---|
+| Kiosk | `https://food.ecocupon.cl/kiosk` |
+| Agent API | `https://agent.food.ecocupon.cl` |
+| Swagger | `https://agent.food.ecocupon.cl/docs` |
+| n8n | `https://n8n.smarterbot.cl` |
+| Admin Odoo | `https://food.ecocupon.cl/web/login` |
