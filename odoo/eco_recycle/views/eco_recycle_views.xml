@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Wallet Tree View -->
+    <record id="view_eco_wallet_tree" model="ir.ui.view">
+        <field name="name">eco.wallet.tree</field>
+        <field name="model">eco.wallet</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="phone"/>
+                <field name="partner_id"/>
+                <field name="balance"/>
+                <field name="total_earned"/>
+                <field name="total_recycled"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Wallet Form View -->
+    <record id="view_eco_wallet_form" model="ir.ui.view">
+        <field name="name">eco.wallet.form</field>
+        <field name="model">eco.wallet</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_withdraw" string="Retirar Saldo" type="object" class="btn-primary"/>
+                </header>
+                <sheet>
+                    <group>
+                        <field name="phone"/>
+                        <field name="partner_id"/>
+                        <field name="balance"/>
+                        <field name="total_earned"/>
+                        <field name="total_recycled"/>
+                    </group>
+                    <notebook>
+                        <page string="Transactions">
+                            <field name="transaction_ids">
+                                <tree>
+                                    <field name="create_date"/>
+                                    <field name="type"/>
+                                    <field name="amount"/>
+                                    <field name="note"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Recycle Event Tree View -->
+    <record id="view_eco_recycle_event_tree" model="ir.ui.view">
+        <field name="name">eco.recycle.event.tree</field>
+        <field name="model">eco.recycle.event</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="create_date"/>
+                <field name="phone"/>
+                <field name="item"/>
+                <field name="reward"/>
+                <field name="validation_type"/>
+                <field name="state"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- QR Token Tree View -->
+    <record id="view_eco_qr_token_tree" model="ir.ui.view">
+        <field name="name">eco.qr.token.tree</field>
+        <field name="model">eco.qr.token</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="token"/>
+                <field name="order_id"/>
+                <field name="item"/>
+                <field name="reward"/>
+                <field name="used"/>
+                <field name="created_at"/>
+                <field name="recycled_at"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Menu Items -->
+    <menuitem id="menu_eco_root" name="♻️ EcoCupon" sequence="10"/>
+    <menuitem id="menu_eco_wallets" name="Wallets" parent="menu_eco_root"
+              action="action_eco_wallet" sequence="10"/>
+    <menuitem id="menu_eco_events" name="Reciclajes" parent="menu_eco_root"
+              action="action_eco_recycle_event" sequence="20"/>
+    <menuitem id="menu_eco_qr" name="QR Tokens" parent="menu_eco_root"
+              action="action_eco_qr_token" sequence="30"/>
+
+    <!-- Actions -->
+    <record id="action_eco_wallet" model="ir.actions.act_window">
+        <field name="name">Wallets</field>
+        <field name="res_model">eco.wallet</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <record id="action_eco_recycle_event" model="ir.actions.act_window">
+        <field name="name">Recycle Events</field>
+        <field name="res_model">eco.recycle.event</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <record id="action_eco_qr_token" model="ir.actions.act_window">
+        <field name="name">QR Tokens</field>
+        <field name="res_model">eco.qr.token</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>

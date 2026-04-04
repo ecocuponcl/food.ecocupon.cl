@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Recycle Scan Page -->
+    <template id="recycle_validate" name="Validate Recycling">
+        <t t-call="website.layout">
+            <div class="container py-5">
+                <div class="row justify-content-center">
+                    <div class="col-md-6">
+                        <div class="card shadow">
+                            <div class="card-header bg-success text-white text-center">
+                                <h3>♻️ Validar Reciclaje</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="text-center mb-4">
+                                    <p class="mb-1"><strong>Envase:</strong> <span t-esc="item"/></p>
+                                    <p class="mb-1"><strong>Cashback:</strong> <span class="text-success fw-bold">$<t t-esc="reward"/> CLP</span></p>
+                                </div>
+
+                                <form id="recycleForm">
+                                    <input type="hidden" id="qrToken" t-att-value="qr_token"/>
+
+                                    <div class="mb-3">
+                                        <label class="form-label">📱 Tu teléfono</label>
+                                        <input type="tel" id="phone" class="form-control"
+                                               placeholder="+56912345678" required/>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label">📸 Tipo de validación</label>
+                                        <select id="validationType" class="form-select">
+                                            <option value="photo">Foto del envase</option>
+                                            <option value="gps">Ubicación GPS</option>
+                                            <option value="truck">Punto/Camión</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="mb-3" id="photoSection">
+                                        <label class="form-label">📷 Foto</label>
+                                        <input type="file" id="photoInput" class="form-control" accept="image/*"/>
+                                    </div>
+
+                                    <button type="submit" class="btn btn-success w-100 btn-lg">
+                                        ✅ Validar y Recibir Cashback
+                                    </button>
+                                </form>
+
+                                <div id="result" class="mt-3" style="display:none;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- Recycle Error Page -->
+    <template id="recycle_error" name="Recycle Error">
+        <t t-call="website.layout">
+            <div class="container py-5">
+                <div class="row justify-content-center">
+                    <div class="col-md-6 text-center">
+                        <div class="card shadow">
+                            <div class="card-header bg-danger text-white">
+                                <h3>❌ Error</h3>
+                            </div>
+                            <div class="card-body">
+                                <p t-esc="error" class="fs-5"/>
+                                <a href="/kiosk" class="btn btn-primary mt-3">Volver al Kiosco</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- Wallet Lookup -->
+    <template id="wallet_lookup" name="Wallet Lookup">
+        <t t-call="website.layout">
+            <div class="container py-5">
+                <div class="row justify-content-center">
+                    <div class="col-md-6">
+                        <div class="card shadow">
+                            <div class="card-header bg-primary text-white text-center">
+                                <h3>💰 Consultar Wallet</h3>
+                            </div>
+                            <div class="card-body">
+                                <form action="/recycle/wallet" method="get">
+                                    <div class="mb-3">
+                                        <label class="form-label">📱 Teléfono</label>
+                                        <input type="tel" name="phone" class="form-control"
+                                               placeholder="+56912345678" required/>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary w-100">
+                                        🔍 Consultar Saldo
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- Wallet View -->
+    <template id="wallet_view" name="Wallet View">
+        <t t-call="website.layout">
+            <div class="container py-5">
+                <div class="row justify-content-center">
+                    <div class="col-md-6">
+                        <div class="card shadow">
+                            <div class="card-header bg-primary text-white text-center">
+                                <h3>💰 Mi Wallet</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="text-center mb-4">
+                                    <p class="text-muted">Teléfono: <t t-esc="wallet.get('phone')"/></p>
+                                    <h1 class="text-success fw-bold">$<t t-esc="wallet.get('balance', 0)"/> CLP</h1>
+                                </div>
+
+                                <h5>Historial</h5>
+                                <t t-if="wallet.get('history')">
+                                    <t t-foreach="wallet.get('history', [])" t-as="tx">
+                                        <div class="d-flex justify-content-between border-bottom py-2">
+                                            <span>
+                                                <t t-if="tx.get('type') == 'cashback'">♻️</t>
+                                                <t t-elif="tx.get('type') == 'withdraw'">💸</t>
+                                                <t t-esc="tx.get('type')"/>
+                                                <t t-if="tx.get('item')"> — <t t-esc="tx.get('item')"/></t>
+                                            </span>
+                                            <span t-att-class="'text-success' if tx.get('amount', 0) > 0 else 'text-danger'">
+                                                $<t t-esc="abs(tx.get('amount', 0))"/>
+                                            </span>
+                                        </div>
+                                    </t>
+                                </t>
+                                <t t-else="">
+                                    <p class="text-muted">Sin transacciones</p>
+                                </t>
+
+                                <a href="/recycle/wallet" class="btn btn-outline-primary w-100 mt-3">
+                                    ← Volver
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+</odoo>
