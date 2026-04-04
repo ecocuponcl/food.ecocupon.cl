@@ -1,11 +1,13 @@
 /**
- * EcoCupon Recycle - QR Scan & Cashback
+ * EcoCupon Recycle - QR Scan + Cashback + Wallet
+ * AJUSTE 3 + 4 + 5: Validación híbrida → evento → pago
  */
 odoo.define('ecocupon_recycle.recycle_scan', function(require) {
     'use strict';
 
     var publicWidget = require('web.public.widget');
 
+    // ── QR Scan ──
     window.manualScan = function() {
         var qrCode = document.getElementById('qrInput').value.trim();
         if (!qrCode) {
@@ -19,12 +21,10 @@ odoo.define('ecocupon_recycle.recycle_scan', function(require) {
         var resultDiv = document.getElementById('scanResult');
         var cardDiv = document.getElementById('resultCard');
 
-        // Show loading
         cardDiv.className = 'result-card pending';
-        cardDiv.innerHTML = '<h2>⏳ Validando...</h2><p>Verificando autenticidad</p>';
+        cardDiv.innerHTML = '<h2>⏳ Verificando QR...</h2><p>Validando autenticidad</p>';
         resultDiv.style.display = 'block';
 
-        // Call backend
         fetch('/kiosk/scan_qr', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
@@ -33,28 +33,38 @@ odoo.define('ecocupon_recycle.recycle_scan', function(require) {
         .then(function(r) { return r.json(); })
         .then(function(data) {
             if (data.success) {
-                cardDiv.className = 'result-card success';
-                cardDiv.innerHTML =
-                    '<h2>✅ ¡Reciclaje Validado!</h2>' +
-                    '<div class="result-amount">+' + Math.round(data.cashback).toLocaleString('es-CL') + ' CLP</div>' +
-                    '<p>' + (data.item_name || 'Item') + ' reciclado correctamente</p>' +
-                    '<p>💰 Cashback acreditado a tu cuenta</p>';
-            } else if (data.pending) {
-                cardDiv.className = 'result-card pending';
-                cardDiv.innerHTML =
-                    '<h2>📋 Pendiente</h2>' +
-                    '<p>' + (data.message || 'Tu reciclaje será validado pronto') + '</p>';
+                if (data.validated) {
+                    // AJUSTE 5: Validado → cashback acreditado
+                    cardDiv.className = 'result-card success';
+                    cardDiv.innerHTML =
+                        '<h2>✅ ¡Reciclaje Validado!</h2>' +
+                        '<div class="result-amount">+' + Math.round(data.cashback).toLocaleString('es-CL') + ' CLP</div>' +
+                        '<p>' + (data.item_name || 'Item') + ' reciclado</p>' +
+                        '<p>💰 Wallet: ' + (data.wallet_balance || 0).toLocaleString('es-CL') + ' CLP</p>' +
+                        '<p>Método: ' + (data.validation_method || 'Automático') + '</p>';
+                    // Update wallet display
+                    updateWalletDisplay();
+                } else {
+                    // Pending validation
+                    cardDiv.className = 'result-card pending';
+                    cardDiv.innerHTML =
+                        '<h2>📋 Pendiente de Validación</h2>' +
+                        '<p>' + (data.message || 'Tu reciclaje será validado') + '</p>' +
+                        '<p>Cashback: ' + (data.product_name || '') + ' — ' + (data.cashback || 0).toLocaleString('es-CL') + ' CLP</p>' +
+                        '<p class="pending-note">🚛 El cashback se acredita cuando se confirme la recogida</p>';
+                }
             } else if (data.error) {
                 cardDiv.className = 'result-card error';
                 if (data.fraud) {
                     cardDiv.innerHTML =
                         '<h2>⚠️ Validación Requerida</h2>' +
-                        '<p>' + (data.reason || 'Verificación necesaria') + '</p>' +
-                        '<p>Un administrador revisará tu reciclaje</p>';
+                        '<p>' + data.error + '</p>' +
+                        '<p>Un administrador revisará tu caso</p>';
                 } else {
                     cardDiv.innerHTML =
-                        '<h2>❌ Error</h2>' +
-                        '<p>' + data.error + '</p>';
+                        '<h2>❌ ' + (data.reason || 'Error') + '</h2>' +
+                        '<p>' + data.error + '</p>' +
+                        (data.retry_after ? '<p>Intenta después de: ' + data.retry_after + '</p>' : '');
                 }
             }
         })
@@ -65,7 +75,52 @@ odoo.define('ecocupon_recycle.recycle_scan', function(require) {
         });
     }
 
-    // Auto-start QR scanner if camera available
+    // ── Wallet ──
+    window.updateWalletDisplay = function() {
+        fetch('/kiosk/recycle/wallet', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({}),
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.balance !== undefined) {
+                var el = document.querySelector('.wallet-amount');
+                if (el) el.textContent = Math.round(data.balance).toLocaleString('es-CL');
+                var recycled = document.querySelector('.wallet-recycled');
+                if (recycled && data.total_recycled !== undefined) {
+                    recycled.textContent = '♻️ ' + data.total_recycled + ' reciclados';
+                }
+            }
+        });
+    };
+
+    window.useInPurchase = function() {
+        alert('Redirigiendo al kiosko para usar ' + 'CLP en tu compra...');
+        // TODO: redirect to kiosk with wallet credit
+    };
+
+    window.withdrawCredits = function() {
+        var amount = prompt('¿Cuánto deseas retirar?');
+        if (!amount) return;
+
+        fetch('/kiosk/recycle/withdraw', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({amount: parseFloat(amount), method: 'flow'}),
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.success) {
+                alert(data.message);
+                updateWalletDisplay();
+            } else {
+                alert(data.error || 'Error al retirar');
+            }
+        });
+    };
+
+    // ── Auto camera ──
     document.addEventListener('DOMContentLoaded', function() {
         if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
             navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
@@ -84,9 +139,7 @@ odoo.define('ecocupon_recycle.recycle_scan', function(require) {
                         video.play();
                     }
                 })
-                .catch(function() {
-                    // Camera not available, manual input is fallback
-                });
+                .catch(function() {});
         }
     });
 });

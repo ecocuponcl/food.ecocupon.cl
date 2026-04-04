@@ -5,5 +5,11 @@ access_recycle_item_public,recycle.item.public,model_recycle_item,,1,0,0,0
 access_recycle_event_user,recycle.event.user,model_recycle_event,base.group_user,1,1,1,0
 access_recycle_event_portal,recycle.event.portal,model_recycle_event,base.group_portal,1,0,1,0
 access_recycle_category_user,recycle.category.user,model_recycle_category,base.group_user,1,1,1,0
+access_recycle_truck_user,recycle.truck.user,model_recycle_truck,base.group_user,1,1,1,0
+access_recycle_drop_point,recycle.drop.point.user,model_recycle_drop_point,base.group_user,1,1,1,0
+access_eco_wallet_user,eco.wallet.user,model_eco_wallet,base.group_user,1,1,0,0
+access_eco_wallet_portal,eco.wallet.portal,model_eco_wallet,base.group_portal,1,0,0,0
+access_eco_wallet_tx_user,eco.wallet.tx.user,model_eco_wallet_transaction,base.group_user,1,1,1,0
+access_eco_wallet_tx_portal,eco.wallet.tx.portal,model_eco_wallet_transaction,base.group_portal,1,0,1,0
 access_cashback_user,cashback.transaction.user,model_cashback_transaction,base.group_user,1,1,1,0
 access_cashback_portal,cashback.transaction.portal,model_cashback_transaction,base.group_portal,1,0,0,0

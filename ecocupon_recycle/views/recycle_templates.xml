@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Recycle Scan Page -->
+    <!-- Recycle Scan Page with Wallet -->
     <template id="recycle_scan_page" name="EcoCupon Recycle Scan">
         <t t-call="web.layout">
             <t t-set="head">
@@ -9,12 +9,13 @@
             </t>
             <body class="recycle-body">
                 <div class="recycle-container">
-                    <!-- Header -->
+                    <!-- Header with Wallet Balance -->
                     <div class="recycle-header">
                         <h1>♻️ Recicla y Gana</h1>
                         <t t-if="partner">
-                            <div class="recycle-credits">
-                                <span>💰 <t t-esc="credits"/> CLP</span>
+                            <div class="recycle-wallet">
+                                <span class="wallet-balance">💰 <t t-esc="balance"/> CLP</span>
+                                <span class="wallet-recycled">♻️ <t t-esc="total_recycled"/> reciclados</span>
                             </div>
                         </t>
                     </div>
@@ -33,7 +34,7 @@
                         <div class="manual-input">
                             <input type="text" id="qrInput" placeholder="O ingresa el código QR manualmente"
                                    class="qr-input"/>
-                            <button onclick="manualScan()" class="scan-btn">Validar</button>
+                            <button onclick="manualScan()" class="scan-btn">Escanear QR</button>
                         </div>
                     </div>
 
@@ -43,6 +44,27 @@
                             <!-- Filled by JS -->
                         </div>
                     </div>
+
+                    <!-- Wallet Section -->
+                    <t t-if="partner">
+                        <div class="recycle-wallet-section">
+                            <h3>💰 Tu Wallet EcoCupon</h3>
+                            <div class="wallet-card">
+                                <div class="wallet-balance-big">
+                                    <span class="wallet-amount"><t t-esc="balance"/></span>
+                                    <span class="wallet-currency">CLP</span>
+                                </div>
+                                <div class="wallet-actions">
+                                    <button onclick="useInPurchase()" class="wallet-btn primary">
+                                        🛒 Usar en Compra
+                                    </button>
+                                    <button onclick="withdrawCredits()" class="wallet-btn secondary">
+                                        💸 Retirar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
 
                     <!-- Categories -->
                     <div class="recycle-categories">
@@ -79,7 +101,8 @@
                             <li>♻️ Consumes y guardas el envase</li>
                             <li>📷 Escaneas el QR del envase</li>
                             <li>✅ Validas con foto o GPS</li>
-                            <li>💰 Recibes cashback al instante</li>
+                            <li>🚛 Camión/punto confirma recogida</li>
+                            <li>💰 Recibes cashback en tu wallet</li>
                         </ol>
                     </div>
                 </div>

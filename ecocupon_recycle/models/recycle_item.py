@@ -1,52 +1,75 @@
+"""
+AJUSTE 1: QR fuerte — order linkage, expiration, status, unique hash
+AJUSTE 3: Image hash para detección de duplicados
+"""
 from odoo import models, fields, api
 import hashlib
 import uuid
+import time
 
 
 class RecycleItem(models.Model):
-    """Productos/envases reciclables con QR único"""
+    """Envase reciclable con QR único vinculado a compra real"""
     _name = 'recycle.item'
-    _description = 'Recyclable Item (QR-linked)'
+    _description = 'Recyclable Item (QR-linked to purchase)'
     _order = 'create_date desc'
 
-    # QR identification
+    # ═══ QR FUERTE (AJUSTE 1) ═══
     qr_code = fields.Char(required=True, readonly=True, index=True, copy=False,
                          default=lambda self: self._generate_qr())
-    qr_hash = fields.Char(compute='_compute_qr_hash', store=True, index=True)
+    qr_hash = fields.Char(compute='_compute_qr_hash', store=True, index=True,
+                         help='SHA256 del QR para verificación criptográfica')
+    qr_signature = fields.Char(readonly=True, copy=False,
+                              help='Firma HMAC del QR para validar autenticidad')
 
-    # Product linkage
+    # ═══ VINCULACIÓN A COMPRA REAL ═══
+    order_id = fields.Many2one('sale.order', string='Original Order', required=False,
+                              help='La compra que generó este envase')
+    order_ref = fields.Char(related='order_id.client_order_ref', string='Order Ref')
     product_id = fields.Many2one('product.product', string='Product')
     product_name = fields.Char(related='product_id.name', string='Product Name')
     category_id = fields.Many2one('recycle.category', string='Category')
 
-    # Cashback config
-    cashback_amount = fields.Float(string='Cashback (CLP)', default=100.0,
-                                   help='Amount awarded on successful recycling')
+    # ═══ ESTADO DEL ENVASE ═══
+    status = fields.Selection([
+        ('issued', 'Issued (sold)'),
+        ('scanned', 'Scanned (pending validation)'),
+        ('validated', 'Validated (recycling confirmed)'),
+        ('cashback_paid', 'Cashback Paid'),
+        ('expired', 'Expired'),
+        ('fraud_flagged', 'Fraud Flagged'),
+    ], default='issued', required=True, index=True)
+
+    # ═══ TIMESTAMPS CRÍTICOS ═══
+    issued_at = fields.Datetime(string='Issued At', default=fields.Datetime.now,
+                               required=True, help='Cuando se vendió el producto')
+    expires_at = fields.Datetime(string='Expires At',
+                                help='Ventana máxima para reciclar (default: 30 días)')
+    first_scanned_at = fields.Datetime(readonly=True)
+    validated_at = fields.Datetime(readonly=True)
+    cashback_paid_at = fields.Datetime(readonly=True)
+
+    # ═══ CASHBACK CONFIG ═══
+    cashback_amount = fields.Float(string='Cashback (CLP)', default=100.0)
     currency_id = fields.Many2one('res.currency', default=lambda self: self.env.ref('base.CLP', raise_if_not_found=False))
 
-    # Status
-    status = fields.Selection([
-        ('active', 'Active'),
-        ('recycled', 'Recycled'),
-        ('expired', 'Expired'),
-        ('fraud_suspect', 'Fraud Suspect'),
-    ], default='active', required=True, index=True)
-
-    # Anti-fraud
-    max_scans_per_day = fields.Integer(default=3, help='Max times this QR can be scanned per user per day')
+    # ═══ ANTI-FRAUD ═══
+    max_scans = fields.Integer(default=1, help='QR de un solo uso')
     require_photo = fields.Boolean(default=True)
     require_gps = fields.Boolean(default=False)
-    valid_from = fields.Datetime()
-    valid_until = fields.Datetime()
+    min_delay_hours = fields.Float(default=1.0, help='Horas mínimas entre compra y reciclaje')
+    image_hash = fields.Char(readonly=True, help='Hash de la foto para detectar duplicados')
 
-    # Tracking
-    scan_count = fields.Integer(compute='_compute_scan_count')
-    total_cashback_paid = fields.Float(compute='_compute_cashback')
-    last_scan_date = fields.Datetime(readonly=True)
-    last_scan_partner_id = fields.Many2one('res.partner', readonly=True)
+    # ═══ TRACKING ═══
+    scan_count = fields.Integer(compute='_compute_stats')
+    scan_partner_id = fields.Many2one('res.partner', readonly=True)
+    validation_method = fields.Selection([
+        ('photo', 'Photo Only'),
+        ('gps', 'GPS Zone'),
+        ('truck', 'Truck Pickup'),
+        ('hybrid', 'Hybrid (Photo + GPS)'),
+    ], readonly=True)
 
-    # Order linkage (where was this item sold)
-    order_id = fields.Many2one('sale.order', string='Original Order')
     tenant_id = fields.Char(default='ecocupon', index=True)
 
     _sql_constraints = [
@@ -55,9 +78,11 @@ class RecycleItem(models.Model):
 
     @api.model
     def _generate_qr(self):
-        """Generate unique QR code: ECO-{timestamp}-{random}"""
-        import time
-        ts = str(int(time.time()))[-6:]
+        """
+        QR fuerte: ECO-{timestamp6}-{uuid6}
+        Ejemplo: ECO-260404-a3f2b1
+        """
+        ts = fields.Datetime.now().strftime('%y%m%d')[2:] + fields.Datetime.now().strftime('%H%M')[:4]
         rand = str(uuid.uuid4())[:6]
         return f"ECO-{ts}-{rand}"
 
@@ -66,95 +91,184 @@ class RecycleItem(models.Model):
         for item in self:
             item.qr_hash = hashlib.sha256(item.qr_code.encode()).hexdigest()[:16]
 
-    @api.depends('qr_code')
-    def _compute_scan_count(self):
+    @api.model_create_multi
+    def create(self, vals_list):
+        """Generar firma HMAC al crear"""
+        items = super().create(vals_list)
+        for item in items:
+            # Firma: HMAC-SHA256 del qr_code + secret del sistema
+            secret = self.env['ir.config_parameter'].sudo().get_param('ecocupon.qr_secret', 'eco-secret-default')
+            item.qr_signature = hmac.new(
+                secret.encode(),
+                f"{item.qr_code}:{item.order_id.id}:{item.product_id.id}".encode(),
+                hashlib.sha256
+            ).hexdigest()[:16]
+
+            # Default expiry: 30 days
+            if not item.expires_at:
+                from datetime import timedelta
+                item.expires_at = item.issued_at + timedelta(days=30)
+        return items
+
+    def _compute_stats(self):
         for item in self:
             item.scan_count = self.env['recycle.event'].search_count([
                 ('item_id', '=', item.id),
-                ('status', '=', 'validated'),
             ])
 
-    @api.depends('qr_code')
-    def _compute_cashback(self):
-        for item in self:
-            cb = self.env['cashback.transaction'].search([
-                ('item_id', '=', item.id),
-                ('status', '=', 'paid'),
-            ])
-            item.total_cashback_paid = sum(cb.mapped('amount'))
+    def action_verify_qr_authenticity(self, qr_code):
+        """
+        Verificar que un QR es auténtico y válido para escanear
+        AJUSTE 1 + 3: Validación fuerte
+        """
+        item = self.search([('qr_code', '=', qr_code)], limit=1)
+        if not item:
+            return {'valid': False, 'reason': 'qr_not_found', 'message': 'Código QR no encontrado'}
 
-    def action_validate_fraud(self):
-        """Anti-fraud checks before approving a scan"""
-        self.ensure_one()
-        partner = self.env.user.partner_id if self.env.user.partner_id.id > 1 else None
-        if not partner:
-            return {'fraud': False, 'reason': 'anonymous', 'score': 0}
+        now = fields.Datetime.now()
 
-        today = fields.Date.today()
-        scans_today = self.env['recycle.event'].search_count([
-            ('item_id', '=', self.id),
-            ('partner_id', '=', partner.id),
-            ('create_date', '>=', fields.Datetime.to_string(fields.Datetime.today().replace(hour=0, minute=0, second=0))),
-            ('status', 'in', ['pending', 'validated']),
-        ])
+        # Check 1: Estado
+        if item.status in ('validated', 'cashback_paid'):
+            return {'valid': False, 'reason': 'already_recycled', 'message': 'Este envase ya fue reciclado'}
+        if item.status == 'expired':
+            return {'valid': False, 'reason': 'expired', 'message': 'Código QR expirado'}
+        if item.status == 'fraud_flagged':
+            return {'valid': False, 'reason': 'fraud', 'message': 'Este QR fue marcado como fraude'}
 
-        fraud_checks = {
-            'max_scans_exceeded': scans_today >= self.max_scans_per_day,
-            'already_recycled': self.status == 'recycled',
-            'expired': self.valid_until and self.valid_until < fields.Datetime.now(),
-            'not_started': self.valid_from and self.valid_from > fields.Datetime.now(),
-        }
+        # Check 2: Expiración
+        if item.expires_at and item.expires_at < now:
+            item.status = 'expired'
+            return {'valid': False, 'reason': 'expired', 'message': 'Ventana de reciclaje expirada'}
 
-        fraud_score = sum(1 for v in fraud_checks.values() if v)
-        reason = ', '.join(k for k, v in fraud_checks.items() if v) or 'ok'
+        # Check 3: Delay mínimo (no reciclar inmediatamente después de comprar)
+        if item.min_delay_hours > 0 and item.issued_at:
+            from datetime import timedelta
+            min_recycle_time = item.issued_at + timedelta(hours=item.min_delay_hours)
+            if now < min_recycle_time:
+                remaining = min_recycle_time - now
+                return {
+                    'valid': False,
+                    'reason': 'too_soon',
+                    'message': f'Debe esperar {item.min_delay_hours:.0f}h desde la compra',
+                    'retry_after': min_recycle_time.isoformat(),
+                }
+
+        # Check 4: Max scans
+        if item.scan_count >= item.max_scans:
+            return {'valid': False, 'reason': 'max_scans', 'message': 'QR ya utilizado'}
 
         return {
-            'fraud': fraud_score > 0,
-            'score': fraud_score,
-            'reason': reason,
-            'scans_today': scans_today,
-            'checks': fraud_checks,
+            'valid': True,
+            'item_id': item.id,
+            'product_name': item.product_name or 'Producto',
+            'category': item.category_id.name if item.category_id else '',
+            'cashback': item.cashback_amount,
+            'issued_at': item.issued_at.isoformat(),
+            'status': item.status,
         }
 
-    def action_mark_recycled(self, partner_id=None, photo=None, gps_lat=None, gps_lon=None):
-        """Mark item as recycled after validation"""
+    def action_mark_scanned(self, partner_id=None, photo_url=None, gps=None, image_hash=None):
+        """
+        AJUSTE 3 + 5: Marcar como escaneado → pendiente validación
+        NO paga cashback directo — requiere evento validado
+        """
         self.ensure_one()
 
-        # Run fraud check
-        fraud_result = self.action_validate_fraud()
-        if fraud_result.get('fraud'):
-            self.status = 'fraud_suspect'
-            return {'success': False, 'reason': fraud_result['reason'], 'fraud': True}
+        # Verify authenticity first
+        verify = self.action_verify_qr_authenticity(self.qr_code)
+        if not verify['valid']:
+            return {'success': False, 'reason': verify['reason'], 'message': verify['message']}
 
-        # Create event
+        # Create scan event (pending validation)
         event = self.env['recycle.event'].create({
             'item_id': self.id,
             'partner_id': partner_id,
-            'type': 'recycle',
-            'status': 'validated',
-            'photo_url': photo,
-            'gps_lat': gps_lat,
-            'gps_lon': gps_lon,
+            'order_id': self.order_id.id,
+            'type': 'scan',
+            'status': 'pending',
+            'photo_url': photo_url,
+            'image_hash': image_hash,
+            'gps_lat': gps[0] if gps else None,
+            'gps_lon': gps[1] if gps else None,
             'cashback_amount': self.cashback_amount,
+            'validation_method': 'photo' if photo_url else ('gps' if gps else 'scan'),
         })
 
-        # Create cashback transaction
-        if partner_id:
-            self.env['cashback.transaction'].create({
-                'partner_id': partner_id,
+        self.status = 'scanned'
+        self.first_scanned_at = fields.Datetime.now()
+        self.scan_partner_id = partner_id
+        if image_hash:
+            self.image_hash = image_hash
+
+        return {
+            'success': True,
+            'pending': True,
+            'event_id': event.id,
+            'message': 'Escaneo registrado. Cashback pendiente de validación.',
+            'product_name': verify.get('product_name', ''),
+            'cashback': self.cashback_amount,
+        }
+
+    def action_validate_and_pay(self, validation_method='auto'):
+        """
+        AJUSTE 5: Evento validado → pago (no foto → pago)
+        Solo se ejecuta cuando hay confirmación (camión, punto, admin)
+        """
+        self.ensure_one()
+
+        if self.status not in ('scanned',):
+            return {'success': False, 'reason': 'invalid_status', 'message': f'Estado actual: {self.status}'}
+
+        # Check for duplicate image hash (AJUSTE 3)
+        if self.image_hash:
+            dup = self.search([
+                ('image_hash', '=', self.image_hash),
+                ('id', '!=', self.id),
+                ('status', 'in', ('validated', 'cashback_paid')),
+            ], limit=1)
+            if dup:
+                self.status = 'fraud_flagged'
+                return {'success': False, 'reason': 'duplicate_photo', 'message': 'Foto duplicada detectada'}
+
+        # Mark validated
+        self.status = 'validated'
+        self.validated_at = fields.Datetime.now()
+        self.validation_method = validation_method
+
+        # Find pending event and approve
+        event = self.env['recycle.event'].search([
+            ('item_id', '=', self.id),
+            ('status', '=', 'pending'),
+        ], order='create_date desc', limit=1)
+
+        if event:
+            event.status = 'validated'
+            event.validated_by = self.env.user
+
+        # Create cashback transaction (wallet internal, not Flow)
+        if self.scan_partner_id:
+            tx = self.env['eco.wallet.transaction'].create({
+                'wallet_id': self.scan_partner_id.eco_wallet_id.id if self.scan_partner_id.eco_wallet_id else None,
+                'partner_id': self.scan_partner_id.id,
                 'item_id': self.id,
                 'event_id': event.id,
                 'amount': self.cashback_amount,
-                'currency_id': self.currency_id.id,
-                'status': 'paid',
+                'type': 'credit',
                 'source': 'recycle',
+                'status': 'confirmed',
             })
-            partner = self.env['res.partner'].browse(partner_id)
-            partner.recycle_credits += self.cashback_amount
-            partner.recycle_count += 1
+            self.status = 'cashback_paid'
+            self.cashback_paid_at = fields.Datetime.now()
 
-        self.status = 'recycled'
-        self.last_scan_date = fields.Datetime.now()
-        self.last_scan_partner_id = partner_id
+            return {
+                'success': True,
+                'cashback': self.cashback_amount,
+                'transaction_id': tx.id,
+                'wallet_balance': tx.wallet_id.balance if tx.wallet_id else 0,
+                'message': f'{self.cashback_amount:.0f} CLP acreditados en wallet',
+            }
 
-        return {'success': True, 'cashback': self.cashback_amount, 'event_id': event.id}
+        return {'success': True, 'message': 'Validado sin partner asociado'}
+
+
+import hmac as hmac_module

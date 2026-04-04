@@ -1,6 +1,91 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Menu items -->
+    <!-- ═══ ACTIONS (must be defined before menus that reference them) ═══ -->
+    <record id="action_recycle_items" model="ir.actions.act_window">
+        <field name="name">Recycle Items</field>
+        <field name="res_model">recycle.item</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="action_recycle_events" model="ir.actions.act_window">
+        <field name="name">Recycle Events</field>
+        <field name="res_model">recycle.event</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="action_cashback" model="ir.actions.act_window">
+        <field name="name">Cashback Transactions</field>
+        <field name="res_model">cashback.transaction</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="action_recycle_categories" model="ir.actions.act_window">
+        <field name="name">Recycle Categories</field>
+        <field name="res_model">recycle.category</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="action_eco_wallets" model="ir.actions.act_window">
+        <field name="name">Eco Wallets</field>
+        <field name="res_model">eco.wallet</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="action_recycle_trucks" model="ir.actions.act_window">
+        <field name="name">Recycle Trucks</field>
+        <field name="res_model">recycle.truck</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="action_recycle_drop_points" model="ir.actions.act_window">
+        <field name="name">Drop-off Points</field>
+        <field name="res_model">recycle.drop_point</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- ═══ VIEWS ═══ -->
+    <record id="view_eco_wallet_tree" model="ir.ui.view">
+        <field name="name">eco.wallet.list</field>
+        <field name="model">eco.wallet</field>
+        <field name="arch" type="xml">
+            <list string="Eco Wallets">
+                <field name="partner_id"/>
+                <field name="balance"/>
+                <field name="total_earned"/>
+                <field name="total_spent"/>
+                <field name="total_recycled"/>
+                <field name="status"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_recycle_truck_tree" model="ir.ui.view">
+        <field name="name">recycle.truck.list</field>
+        <field name="model">recycle.truck</field>
+        <field name="arch" type="xml">
+            <list string="Recycle Trucks">
+                <field name="name"/>
+                <field name="plate"/>
+                <field name="driver_id"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_recycle_drop_point_tree" model="ir.ui.view">
+        <field name="name">recycle.drop_point.list</field>
+        <field name="model">recycle.drop_point</field>
+        <field name="arch" type="xml">
+            <list string="Drop-off Points">
+                <field name="name"/>
+                <field name="address"/>
+                <field name="radius_meters"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ═══ MENUS (after actions) ═══ -->
     <menuitem id="menu_ecocupon_recycle"
               name="♻️ Recycle"
               web_icon="ecocupon_recycle,static/src/images/recycle_icon.png"
@@ -24,29 +109,27 @@
               action="action_cashback"
               sequence="30"/>
 
+    <menuitem id="menu_eco_wallets"
+              name="Wallets"
+              parent="menu_ecocupon_recycle"
+              action="action_eco_wallets"
+              sequence="35"/>
+
     <menuitem id="menu_recycle_categories"
               name="Categorías"
               parent="menu_ecocupon_recycle"
               action="action_recycle_categories"
               sequence="40"/>
 
-    <!-- Add recycle fields to partner -->
-    <record id="view_partner_recycle_form" model="ir.ui.view">
-        <field name="name">res.partner.recycle.form</field>
-        <field name="model">res.partner</field>
-        <field name="inherit_id" ref="base.view_partner_form"/>
-        <field name="arch" type="xml">
-            <xpath expr="//page[@name='sales_purchases']" position="after">
-                <page name="recycle" string="♻️ Recycle">
-                    <group>
-                        <group>
-                            <field name="recycle_credits"/>
-                            <field name="recycle_count"/>
-                            <field name="recycle_qr_code"/>
-                        </group>
-                    </group>
-                </page>
-            </xpath>
-        </field>
-    </record>
+    <menuitem id="menu_recycle_trucks"
+              name="🚛 Camiones"
+              parent="menu_ecocupon_recycle"
+              action="action_recycle_trucks"
+              sequence="50"/>
+
+    <menuitem id="menu_recycle_drop_points"
+              name="📍 Puntos"
+              parent="menu_ecocupon_recycle"
+              action="action_recycle_drop_points"
+              sequence="60"/>
 </odoo>

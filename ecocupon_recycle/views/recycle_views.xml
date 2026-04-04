@@ -2,18 +2,19 @@
 <odoo>
     <!-- Recycle Item Views -->
     <record id="view_recycle_item_tree" model="ir.ui.view">
-        <field name="name">recycle.item.tree</field>
+        <field name="name">recycle.item.list</field>
         <field name="model">recycle.item</field>
         <field name="arch" type="xml">
             <list string="Recycle Items">
                 <field name="qr_code"/>
-                <field name="qr_hash"/>
                 <field name="product_name"/>
                 <field name="category_id"/>
+                <field name="order_ref"/>
+                <field name="status" decoration-success="status=='validated'" decoration-warning="status=='scanned'" decoration-danger="status=='fraud_flagged'" widget="badge"/>
                 <field name="cashback_amount"/>
-                <field name="status"/>
+                <field name="issued_at"/>
+                <field name="expires_at"/>
                 <field name="scan_count"/>
-                <field name="create_date"/>
             </list>
         </field>
     </record>
@@ -24,39 +25,46 @@
         <field name="arch" type="xml">
             <form string="Recycle Item">
                 <header>
-                    <field name="status" widget="statusbar"/>
+                    <field name="status" widget="statusbar"
+                           statusbar_visible="issued,scanned,validated,cashback_paid"
+                           statusbar_colors='{"fraud_flagged":"red","expired":"orange"}'/>
                 </header>
                 <sheet>
                     <group>
-                        <group>
+                        <group string="QR Identity">
                             <field name="qr_code"/>
                             <field name="qr_hash"/>
+                            <field name="qr_signature"/>
+                        </group>
+                        <group string="Product">
                             <field name="product_id"/>
                             <field name="category_id"/>
-                        </group>
-                        <group>
-                            <field name="cashback_amount"/>
-                            <field name="currency_id"/>
                             <field name="order_id"/>
-                            <field name="tenant_id"/>
+                            <field name="order_ref"/>
                         </group>
                     </group>
-                    <group string="Anti-Fraud">
-                        <group>
-                            <field name="max_scans_per_day"/>
+                    <group>
+                        <group string="Anti-Fraud">
+                            <field name="max_scans"/>
                             <field name="require_photo"/>
                             <field name="require_gps"/>
+                            <field name="min_delay_hours"/>
+                            <field name="image_hash" readonly="1"/>
                         </group>
-                        <group>
-                            <field name="valid_from"/>
-                            <field name="valid_until"/>
+                        <group string="Timestamps">
+                            <field name="issued_at"/>
+                            <field name="expires_at"/>
+                            <field name="first_scanned_at"/>
+                            <field name="validated_at"/>
+                            <field name="cashback_paid_at"/>
                         </group>
                     </group>
                     <group string="Tracking">
                         <field name="scan_count"/>
-                        <field name="total_cashback_paid"/>
-                        <field name="last_scan_date"/>
-                        <field name="last_scan_partner_id"/>
+                        <field name="scan_partner_id"/>
+                        <field name="validation_method"/>
+                        <field name="cashback_amount"/>
+                        <field name="tenant_id"/>
                     </group>
                 </sheet>
             </form>
@@ -65,16 +73,21 @@
 
     <!-- Recycle Event Views -->
     <record id="view_recycle_event_tree" model="ir.ui.view">
-        <field name="name">recycle.event.tree</field>
+        <field name="name">recycle.event.list</field>
         <field name="model">recycle.event</field>
         <field name="arch" type="xml">
-            <list string="Recycle Events">
+            <list string="Recycle Events"
+                  decoration-info="status=='pending'"
+                  decoration-success="status=='validated'"
+                  decoration-danger="status=='fraud'">
                 <field name="create_date"/>
                 <field name="item_id"/>
                 <field name="partner_id"/>
                 <field name="type"/>
-                <field name="status"/>
+                <field name="status" widget="badge"/>
                 <field name="validation_method"/>
+                <field name="validation_source"/>
+                <field name="truck_id"/>
                 <field name="cashback_amount"/>
             </list>
         </field>
@@ -82,7 +95,7 @@
 
     <!-- Cashback Transaction Views -->
     <record id="view_cashback_tree" model="ir.ui.view">
-        <field name="name">cashback.transaction.tree</field>
+        <field name="name">cashback.transaction.list</field>
         <field name="model">cashback.transaction</field>
         <field name="arch" type="xml">
             <list string="Cashback Transactions">
@@ -100,7 +113,7 @@
 
     <!-- Recycle Category Views -->
     <record id="view_recycle_category_tree" model="ir.ui.view">
-        <field name="name">recycle.category.tree</field>
+        <field name="name">recycle.category.list</field>
         <field name="model">recycle.category</field>
         <field name="arch" type="xml">
             <list string="Recycle Categories">
@@ -109,32 +122,33 @@
                 <field name="default_cashback"/>
                 <field name="max_scans_per_user_day"/>
                 <field name="require_photo"/>
+                <field name="require_gps"/>
             </list>
         </field>
     </record>
 
-    <!-- Actions & Menus -->
+    <!-- Actions -->
     <record id="action_recycle_items" model="ir.actions.act_window">
         <field name="name">Recycle Items</field>
         <field name="res_model">recycle.item</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
     </record>
 
     <record id="action_recycle_events" model="ir.actions.act_window">
         <field name="name">Recycle Events</field>
         <field name="res_model">recycle.event</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
     </record>
 
     <record id="action_cashback" model="ir.actions.act_window">
         <field name="name">Cashback Transactions</field>
         <field name="res_model">cashback.transaction</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
     </record>
 
     <record id="action_recycle_categories" model="ir.actions.act_window">
         <field name="name">Recycle Categories</field>
         <field name="res_model">recycle.category</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
     </record>
 </odoo>
