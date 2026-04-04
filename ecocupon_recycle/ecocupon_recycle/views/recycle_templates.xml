@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Recycle Scan Page -->
+    <template id="recycle_scan_page" name="EcoCupon Recycle Scan">
+        <t t-call="web.layout">
+            <t t-set="head">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+                <link rel="stylesheet" href="/ecocupon_recycle/static/src/css/recycle.css"/>
+            </t>
+            <body class="recycle-body">
+                <div class="recycle-container">
+                    <!-- Header -->
+                    <div class="recycle-header">
+                        <h1>♻️ Recicla y Gana</h1>
+                        <t t-if="partner">
+                            <div class="recycle-credits">
+                                <span>💰 <t t-esc="credits"/> CLP</span>
+                            </div>
+                        </t>
+                    </div>
+
+                    <!-- QR Scanner Area -->
+                    <div class="recycle-scan-area">
+                        <h2>Escanea el código QR del envase</h2>
+                        <div class="qr-scanner" id="qrScanner">
+                            <div class="qr-placeholder">
+                                <span>📷</span>
+                                <p>Apunta la cámara al QR</p>
+                            </div>
+                        </div>
+
+                        <!-- Manual input fallback -->
+                        <div class="manual-input">
+                            <input type="text" id="qrInput" placeholder="O ingresa el código QR manualmente"
+                                   class="qr-input"/>
+                            <button onclick="manualScan()" class="scan-btn">Validar</button>
+                        </div>
+                    </div>
+
+                    <!-- Result Area -->
+                    <div class="recycle-result" id="scanResult" style="display:none;">
+                        <div class="result-card" id="resultCard">
+                            <!-- Filled by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Categories -->
+                    <div class="recycle-categories">
+                        <h3>¿Qué puedes reciclar?</h3>
+                        <div class="category-grid">
+                            <div class="category-card">
+                                <span class="cat-icon">🥫</span>
+                                <span class="cat-name">Lata</span>
+                                <span class="cat-reward">+50 CLP</span>
+                            </div>
+                            <div class="category-card">
+                                <span class="cat-icon">🧴</span>
+                                <span class="cat-name">Botella</span>
+                                <span class="cat-reward">+75 CLP</span>
+                            </div>
+                            <div class="category-card">
+                                <span class="cat-icon">🍾</span>
+                                <span class="cat-name">Vidrio</span>
+                                <span class="cat-reward">+100 CLP</span>
+                            </div>
+                            <div class="category-card">
+                                <span class="cat-icon">🍺</span>
+                                <span class="cat-name">Sixpack</span>
+                                <span class="cat-reward">+150 CLP</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- How it works -->
+                    <div class="recycle-how">
+                        <h3>¿Cómo funciona?</h3>
+                        <ol>
+                            <li>🛒 Compras tu producto</li>
+                            <li>♻️ Consumes y guardas el envase</li>
+                            <li>📷 Escaneas el QR del envase</li>
+                            <li>✅ Validas con foto o GPS</li>
+                            <li>💰 Recibes cashback al instante</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <script src="/ecocupon_recycle/static/src/js/recycle_scan.js"/>
+            </body>
+        </t>
+    </template>
+</odoo>

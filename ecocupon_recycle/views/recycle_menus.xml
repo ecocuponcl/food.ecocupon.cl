@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Menu items -->
+    <menuitem id="menu_ecocupon_recycle"
+              name="♻️ Recycle"
+              web_icon="ecocupon_recycle,static/src/images/recycle_icon.png"
+              sequence="50"/>
+
+    <menuitem id="menu_recycle_items"
+              name="Items QR"
+              parent="menu_ecocupon_recycle"
+              action="action_recycle_items"
+              sequence="10"/>
+
+    <menuitem id="menu_recycle_events"
+              name="Eventos"
+              parent="menu_ecocupon_recycle"
+              action="action_recycle_events"
+              sequence="20"/>
+
+    <menuitem id="menu_cashback"
+              name="💰 Cashback"
+              parent="menu_ecocupon_recycle"
+              action="action_cashback"
+              sequence="30"/>
+
+    <menuitem id="menu_recycle_categories"
+              name="Categorías"
+              parent="menu_ecocupon_recycle"
+              action="action_recycle_categories"
+              sequence="40"/>
+
+    <!-- Add recycle fields to partner -->
+    <record id="view_partner_recycle_form" model="ir.ui.view">
+        <field name="name">res.partner.recycle.form</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='sales_purchases']" position="after">
+                <page name="recycle" string="♻️ Recycle">
+                    <group>
+                        <group>
+                            <field name="recycle_credits"/>
+                            <field name="recycle_count"/>
+                            <field name="recycle_qr_code"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

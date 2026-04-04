@@ -1,0 +1,9 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_recycle_item_user,recycle.item.user,model_recycle_item,base.group_user,1,1,1,0
+access_recycle_item_portal,recycle.item.portal,model_recycle_item,base.group_portal,1,0,0,0
+access_recycle_item_public,recycle.item.public,model_recycle_item,,1,0,0,0
+access_recycle_event_user,recycle.event.user,model_recycle_event,base.group_user,1,1,1,0
+access_recycle_event_portal,recycle.event.portal,model_recycle_event,base.group_portal,1,0,1,0
+access_recycle_category_user,recycle.category.user,model_recycle_category,base.group_user,1,1,1,0
+access_cashback_user,cashback.transaction.user,model_cashback_transaction,base.group_user,1,1,1,0
+access_cashback_portal,cashback.transaction.portal,model_cashback_transaction,base.group_portal,1,0,0,0

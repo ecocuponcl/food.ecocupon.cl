@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Recycle Item Views -->
+    <record id="view_recycle_item_tree" model="ir.ui.view">
+        <field name="name">recycle.item.tree</field>
+        <field name="model">recycle.item</field>
+        <field name="arch" type="xml">
+            <tree string="Recycle Items">
+                <field name="qr_code"/>
+                <field name="qr_hash"/>
+                <field name="product_name"/>
+                <field name="category_id"/>
+                <field name="cashback_amount"/>
+                <field name="status"/>
+                <field name="scan_count"/>
+                <field name="create_date"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_recycle_item_form" model="ir.ui.view">
+        <field name="name">recycle.item.form</field>
+        <field name="model">recycle.item</field>
+        <field name="arch" type="xml">
+            <form string="Recycle Item">
+                <header>
+                    <field name="status" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="qr_code"/>
+                            <field name="qr_hash"/>
+                            <field name="product_id"/>
+                            <field name="category_id"/>
+                        </group>
+                        <group>
+                            <field name="cashback_amount"/>
+                            <field name="currency_id"/>
+                            <field name="order_id"/>
+                            <field name="tenant_id"/>
+                        </group>
+                    </group>
+                    <group string="Anti-Fraud">
+                        <group>
+                            <field name="max_scans_per_day"/>
+                            <field name="require_photo"/>
+                            <field name="require_gps"/>
+                        </group>
+                        <group>
+                            <field name="valid_from"/>
+                            <field name="valid_until"/>
+                        </group>
+                    </group>
+                    <group string="Tracking">
+                        <field name="scan_count"/>
+                        <field name="total_cashback_paid"/>
+                        <field name="last_scan_date"/>
+                        <field name="last_scan_partner_id"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Recycle Event Views -->
+    <record id="view_recycle_event_tree" model="ir.ui.view">
+        <field name="name">recycle.event.tree</field>
+        <field name="model">recycle.event</field>
+        <field name="arch" type="xml">
+            <tree string="Recycle Events">
+                <field name="create_date"/>
+                <field name="item_id"/>
+                <field name="partner_id"/>
+                <field name="type"/>
+                <field name="status"/>
+                <field name="validation_method"/>
+                <field name="cashback_amount"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Cashback Transaction Views -->
+    <record id="view_cashback_tree" model="ir.ui.view">
+        <field name="name">cashback.transaction.tree</field>
+        <field name="model">cashback.transaction</field>
+        <field name="arch" type="xml">
+            <tree string="Cashback Transactions">
+                <field name="create_date"/>
+                <field name="partner_id"/>
+                <field name="item_id"/>
+                <field name="amount"/>
+                <field name="status"/>
+                <field name="source"/>
+                <field name="payment_method"/>
+                <field name="paid_at"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Recycle Category Views -->
+    <record id="view_recycle_category_tree" model="ir.ui.view">
+        <field name="name">recycle.category.tree</field>
+        <field name="model">recycle.category</field>
+        <field name="arch" type="xml">
+            <tree string="Recycle Categories">
+                <field name="icon"/>
+                <field name="name"/>
+                <field name="default_cashback"/>
+                <field name="max_scans_per_user_day"/>
+                <field name="require_photo"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Actions & Menus -->
+    <record id="action_recycle_items" model="ir.actions.act_window">
+        <field name="name">Recycle Items</field>
+        <field name="res_model">recycle.item</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <record id="action_recycle_events" model="ir.actions.act_window">
+        <field name="name">Recycle Events</field>
+        <field name="res_model">recycle.event</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <record id="action_cashback" model="ir.actions.act_window">
+        <field name="name">Cashback Transactions</field>
+        <field name="res_model">cashback.transaction</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <record id="action_recycle_categories" model="ir.actions.act_window">
+        <field name="name">Recycle Categories</field>
+        <field name="res_model">recycle.category</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>

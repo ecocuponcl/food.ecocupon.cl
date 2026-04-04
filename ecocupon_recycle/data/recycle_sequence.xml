@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="seq_recycle_item" model="ir.sequence">
+            <field name="name">Recycle Item QR Sequence</field>
+            <field name="code">recycle.item</field>
+            <field name="prefix">ECO-</field>
+            <field name="padding">8</field>
+        </record>
+    </data>
+</odoo>
