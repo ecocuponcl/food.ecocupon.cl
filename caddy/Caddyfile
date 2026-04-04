@@ -1,0 +1,58 @@
+# Caddyfile — EcoCupon + SmarterOS
+# Deploy en VPS: /etc/caddy/Caddyfile
+
+# ── Landing Funnel ──────────────────────────────────────
+ecocupon.cl {
+    root * /var/www/ecocupon-landing
+    file_server
+    encode gzip
+
+    # API proxy to agent
+    reverse_proxy /decide* http://localhost:9000
+    reverse_proxy /recycle* http://localhost:9000
+    reverse_proxy /health* http://localhost:9000
+}
+
+www.ecocupon.cl {
+    redir https://ecocupon.cl{uri}
+}
+
+# ── Agent API ──────────────────────────────────────────
+agent.food.ecocupon.cl {
+    reverse_proxy http://localhost:9000
+}
+
+# ── Odoo Kiosk ─────────────────────────────────────────
+food.ecocupon.cl {
+    reverse_proxy http://localhost:8070
+}
+
+# ── n8n Event Bus ──────────────────────────────────────
+n8n.smarterbot.cl {
+    reverse_proxy http://localhost:5678
+}
+
+# ── Bolt Dashboard (Streamlit) ─────────────────────────
+bolt.smarterbot.store {
+    reverse_proxy http://localhost:8501
+}
+
+# ── Smarter Food API ───────────────────────────────────
+food.smarterbot.cl {
+    reverse_proxy http://localhost:8002
+}
+
+# ── SmarterOS Docs ─────────────────────────────────────
+docs.smarterbot.cl {
+    reverse_proxy http://localhost:3000
+}
+
+# ── LLM API ────────────────────────────────────────────
+llm.smarterbot.store {
+    reverse_proxy http://localhost:8000
+}
+
+# ── Docling ─────────────────────────────────────────────
+docling.smarterbot.store {
+    reverse_proxy http://localhost:5001
+}

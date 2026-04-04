@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoCupon — Convierte residuos y activos en dinero</title>
+    <meta name="description" content="Sistema que convierte cualquier activo en dinero automáticamente. Reciclaje, vehículos, kioscos con IA.">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #1a1a1a; }
+        .container { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
+
+        /* Hero */
+        .hero { background: linear-gradient(135deg, #0f766e 0%, #059669 50%, #10b981 100%); color: white; padding: 80px 0 60px; text-align: center; }
+        .hero h1 { font-size: 2.5rem; font-weight: 800; margin-bottom: 16px; line-height: 1.2; }
+        .hero p { font-size: 1.25rem; opacity: 0.9; margin-bottom: 32px; max-width: 600px; margin-left: auto; margin-right: auto; }
+        .hero .cta-group { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 16px 32px; border-radius: 12px; font-size: 1.1rem; font-weight: 600; text-decoration: none; border: none; cursor: pointer; transition: all 0.2s; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.15); }
+        .btn-primary { background: white; color: #059669; }
+        .btn-secondary { background: rgba(255,255,255,0.15); color: white; border: 2px solid rgba(255,255,255,0.3); }
+        .btn-whatsapp { background: #25d366; color: white; }
+
+        /* Steps */
+        .steps { padding: 60px 0; background: #f8fafc; }
+        .steps h2 { text-align: center; font-size: 2rem; margin-bottom: 40px; }
+        .steps-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; }
+        .step { background: white; padding: 30px; border-radius: 16px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .step-icon { font-size: 3rem; margin-bottom: 16px; }
+        .step h3 { margin-bottom: 8px; color: #0f766e; }
+
+        /* Verticals */
+        .verticals { padding: 60px 0; }
+        .verticals h2 { text-align: center; font-size: 2rem; margin-bottom: 40px; }
+        .verticals-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; }
+        .vertical-card { border: 2px solid #e5e7eb; border-radius: 16px; padding: 30px; transition: all 0.2s; }
+        .vertical-card:hover { border-color: #059669; box-shadow: 0 4px 20px rgba(5,150,105,0.1); }
+        .vertical-card h3 { font-size: 1.5rem; margin-bottom: 12px; }
+        .vertical-card .flow { background: #f0fdf4; padding: 16px; border-radius: 8px; margin: 16px 0; font-family: monospace; font-size: 0.9rem; }
+        .vertical-card .btn { width: 100%; justify-content: center; margin-top: 16px; }
+
+        /* Demo */
+        .demo { padding: 60px 0; background: #0f766e; color: white; }
+        .demo h2 { text-align: center; font-size: 2rem; margin-bottom: 16px; }
+        .demo p { text-align: center; opacity: 0.9; margin-bottom: 30px; }
+        .demo-box { background: white; color: #1a1a1a; border-radius: 16px; padding: 30px; max-width: 600px; margin: 0 auto; }
+        .demo-tabs { display: flex; gap: 8px; margin-bottom: 20px; }
+        .demo-tab { flex: 1; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; background: white; cursor: pointer; font-weight: 600; text-align: center; transition: all 0.2s; }
+        .demo-tab.active { border-color: #059669; background: #f0fdf4; color: #059669; }
+        .demo-form { display: none; }
+        .demo-form.active { display: block; }
+        .demo-form input, .demo-form select { width: 100%; padding: 12px; margin-bottom: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 1rem; }
+        .demo-form .btn { width: 100%; justify-content: center; background: #059669; color: white; }
+        .demo-result { margin-top: 20px; padding: 20px; background: #f0fdf4; border-radius: 8px; display: none; }
+        .demo-result.show { display: block; }
+        .demo-result h4 { color: #059669; margin-bottom: 8px; }
+        .demo-result pre { background: #1a1a1a; color: #10b981; padding: 16px; border-radius: 8px; overflow-x: auto; font-size: 0.85rem; }
+
+        /* Pricing */
+        .pricing { padding: 60px 0; background: #f8fafc; }
+        .pricing h2 { text-align: center; font-size: 2rem; margin-bottom: 40px; }
+        .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; max-width: 900px; margin: 0 auto; }
+        .pricing-card { background: white; border-radius: 16px; padding: 30px; text-align: center; border: 2px solid #e5e7eb; position: relative; }
+        .pricing-card.featured { border-color: #059669; box-shadow: 0 4px 20px rgba(5,150,105,0.15); }
+        .pricing-card.featured::before { content: "⭐ Popular"; position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: #059669; color: white; padding: 4px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
+        .pricing-card h3 { font-size: 1.5rem; margin-bottom: 8px; }
+        .pricing-card .price { font-size: 2.5rem; font-weight: 800; color: #059669; margin: 16px 0; }
+        .pricing-card .price span { font-size: 1rem; font-weight: 400; color: #6b7280; }
+        .pricing-card ul { list-style: none; margin: 20px 0; text-align: left; }
+        .pricing-card ul li { padding: 8px 0; border-bottom: 1px solid #f3f4f6; }
+        .pricing-card ul li::before { content: "✓ "; color: #059669; font-weight: 600; }
+
+        /* Stats */
+        .stats { padding: 40px 0; background: white; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px; text-align: center; }
+        .stat-value { font-size: 2.5rem; font-weight: 800; color: #059669; }
+        .stat-label { color: #6b7280; font-size: 0.9rem; }
+
+        /* CTA */
+        .cta-section { padding: 60px 0; background: linear-gradient(135deg, #0f766e, #059669); color: white; text-align: center; }
+        .cta-section h2 { font-size: 2rem; margin-bottom: 16px; }
+        .cta-section p { opacity: 0.9; margin-bottom: 30px; font-size: 1.1rem; }
+
+        /* Footer */
+        footer { background: #1a1a1a; color: #9ca3af; padding: 30px 0; text-align: center; font-size: 0.9rem; }
+        footer a { color: #10b981; text-decoration: none; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 1.8rem; }
+            .hero p { font-size: 1rem; }
+            .steps-grid, .verticals-grid, .pricing-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Hero -->
+<section class="hero">
+    <div class="container">
+        <h1>Convierte residuos y activos<br>en dinero automáticamente</h1>
+        <p>📸 Sube una foto o ingresa un activo<br>🧠 La IA decide qué hacer<br>💸 Recibe dinero o cashback</p>
+        <div class="cta-group">
+            <a href="#demo" class="btn btn-primary">🚀 Probar ahora</a>
+            <a href="#pricing" class="btn btn-secondary">💰 Ver planes</a>
+        </div>
+    </div>
+</section>
+
+<!-- Stats -->
+<section class="stats">
+    <div class="container">
+        <div class="stats-grid" id="live-stats">
+            <div><div class="stat-value" id="stat-recycles">0</div><div class="stat-label">Reciclajes hoy</div></div>
+            <div><div class="stat-value" id="stat-cashback">$0</div><div class="stat-label">Cashback entregado</div></div>
+            <div><div class="stat-value" id="stat-wallets">0</div><div class="stat-label">Wallets activas</div></div>
+            <div><div class="stat-value" id="stat-items">0</div><div class="stat-label">Tipos de envases</div></div>
+        </div>
+    </div>
+</section>
+
+<!-- Steps -->
+<section class="steps">
+    <div class="container">
+        <h2>¿Cómo funciona?</h2>
+        <div class="steps-grid">
+            <div class="step">
+                <div class="step-icon">📸</div>
+                <h3>1. Escanea o ingresa</h3>
+                <p>Sube una foto de tu envase o ingresa datos de un activo</p>
+            </div>
+            <div class="step">
+                <div class="step-icon">🧠</div>
+                <h3>2. La IA decide</h3>
+                <p>Analiza valor de mercado, fraude y mejor opción económica</p>
+            </div>
+            <div class="step">
+                <div class="step-icon">💸</div>
+                <h3>3. Recibe dinero</h3>
+                <p>Cashback en wallet, oferta de compra o recomendación de reciclaje</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Verticals -->
+<section class="verticals">
+    <div class="container">
+        <h2>3 Verticales, 1 Cerebro</h2>
+        <div class="verticals-grid">
+            <div class="vertical-card">
+                <h3>♻️ Reciclaje</h3>
+                <p>Convierte envases en cashback real para tus clientes</p>
+                <div class="flow">Foto → IA valida → $ a wallet</div>
+                <a href="#demo" class="btn btn-primary" onclick="selectTab('recycle')">Probar reciclaje</a>
+            </div>
+            <div class="vertical-card">
+                <h3>🚗 Vehículos</h3>
+                <p>Valuación inteligente + decisión comprar/negociar/descartar</p>
+                <div class="flow">Patente + precio → Scoring → Decisión</div>
+                <a href="#demo" class="btn btn-primary" onclick="selectTab('vehicle')">Probar vehículo</a>
+            </div>
+            <div class="vertical-card">
+                <h3>🍔 Kiosk</h3>
+                <p>Kiosco táctil con pagos Flow + QR reciclaje automático</p>
+                <div class="flow">Compra → QR envase → Cashback</div>
+                <a href="https://food.ecocupon.cl/kiosk" class="btn btn-primary" target="_blank">Ver demo kiosk</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Demo -->
+<section class="demo" id="demo">
+    <div class="container">
+        <h2>🧪 Pruébalo ahora</h2>
+        <p>La IA decide en tiempo real — sin registro</p>
+        <div class="demo-box">
+            <div class="demo-tabs">
+                <button class="demo-tab active" onclick="selectTab('recycle')">♻️ Reciclaje</button>
+                <button class="demo-tab" onclick="selectTab('vehicle')">🚗 Vehículo</button>
+                <button class="demo-tab" onclick="selectTab('kiosk')">🍔 Kiosk</button>
+            </div>
+
+            <!-- Recycle Form -->
+            <div class="demo-form active" id="form-recycle">
+                <input type="text" id="recycle-item" placeholder="Tipo de envase (ej: pet_500, lata, vidrio_750)" value="pet_500">
+                <input type="tel" id="recycle-phone" placeholder="Teléfono (ej: 56912345678)" value="56912345678">
+                <button class="btn" onclick="runDemo('recycle')">🧠 Analizar envase</button>
+            </div>
+
+            <!-- Vehicle Form -->
+            <div class="demo-form" id="form-vehicle">
+                <input type="text" id="vehicle-marca" placeholder="Marca (ej: Toyota)" value="Toyota">
+                <input type="text" id="vehicle-modelo" placeholder="Modelo (ej: Yaris)" value="Yaris">
+                <input type="number" id="vehicle-ano" placeholder="Año" value="2019">
+                <input type="number" id="vehicle-precio" placeholder="Precio publicado (CLP)" value="7500000">
+                <button class="btn" onclick="runDemo('vehicle')">🔍 Analizar vehículo</button>
+            </div>
+
+            <!-- Kiosk Form -->
+            <div class="demo-form" id="form-kiosk">
+                <input type="number" id="kiosk-order" placeholder="N° Orden" value="42">
+                <input type="text" id="kiosk-items" placeholder="Items (separados por coma)" value="Sixpack cerveza, Hamburguesa combo, Bebida 1.5L">
+                <button class="btn" onclick="runDemo('kiosk')">🎫 Generar QR envases</button>
+            </div>
+
+            <div class="demo-result" id="demo-result">
+                <h4 id="result-title">Resultado</h4>
+                <pre id="result-json"></pre>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Pricing -->
+<section class="pricing" id="pricing">
+    <div class="container">
+        <h2>Planes</h2>
+        <div class="pricing-grid">
+            <div class="pricing-card">
+                <h3>Básico</h3>
+                <div class="price">$99.900<span>/mes</span></div>
+                <ul>
+                    <li>Kiosco táctil</li>
+                    <li>Pagos Flow.cl</li>
+                    <li>Dashboard básico</li>
+                    <li>Soporte email</li>
+                </ul>
+                <a href="https://wa.me/56979540471?text=Hola!%20Me%20interesa%20el%20plan%20Básico%20de%20EcoCupon" class="btn btn-secondary" target="_blank">Empezar</a>
+            </div>
+            <div class="pricing-card featured">
+                <h3>Reciclaje</h3>
+                <div class="price">$199.900<span>/mes</span></div>
+                <ul>
+                    <li>Todo lo del Básico</li>
+                    <li>Cashback por reciclaje</li>
+                    <li>Wallet clientes</li>
+                    <li>Reportes REP</li>
+                    <li>Anti-fraud AI</li>
+                </ul>
+                <a href="https://wa.me/56979540471?text=Hola!%20Me%20interesa%20el%20plan%20Reciclaje%20de%20EcoCupon" class="btn btn-primary" target="_blank">Probar 7 días gratis</a>
+            </div>
+            <div class="pricing-card">
+                <h3>Enterprise</h3>
+                <div class="price">$399.900<span>/mes</span></div>
+                <ul>
+                    <li>Todo lo del Reciclaje</li>
+                    <li>Multi-sucursal</li>
+                    <li>Integración ERP</li>
+                    <li>Soporte prioritario</li>
+                    <li>API completa</li>
+                </ul>
+                <a href="https://wa.me/56979540471?text=Hola!%20Me%20interesa%20el%20plan%20Enterprise%20de%20EcoCupon" class="btn btn-secondary" target="_blank">Agendar demo</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+    <div class="container">
+        <h2>¿Listo para convertir residuos en dinero?</h2>
+        <p>Te instalo esto en tu negocio en 24 horas</p>
+        <a href="https://wa.me/56979540471?text=Hola!%20Quiero%20instalar%20EcoCupon%20en%20mi%20negocio" class="btn btn-whatsapp" target="_blank">📲 Escribir por WhatsApp</a>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer>
+    <div class="container">
+        <p>© 2026 EcoCupon — Smarter SPA | <a href="https://github.com/ecocuponcl/food.ecocupon.cl" target="_blank">GitHub</a> | <a href="https://agent.food.ecocupon.cl/docs" target="_blank">API Docs</a></p>
+    </div>
+</footer>
+
+<script>
+    const AGENT_URL = window.location.hostname === 'localhost' ? 'http://localhost:9000' : 'https://agent.food.ecocupon.cl';
+
+    function selectTab(tab) {
+        document.querySelectorAll('.demo-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.demo-form').forEach(f => f.classList.remove('active'));
+        document.getElementById('demo-result').classList.remove('show');
+
+        const tabs = { recycle: 0, vehicle: 1, kiosk: 2 };
+        document.querySelectorAll('.demo-tab')[tabs[tab]].classList.add('active');
+        document.getElementById('form-' + tab).classList.add('active');
+    }
+
+    async function runDemo(vertical) {
+        const resultEl = document.getElementById('demo-result');
+        const titleEl = document.getElementById('result-title');
+        const jsonEl = document.getElementById('result-json');
+
+        titleEl.textContent = '⏳ Analizando...';
+        jsonEl.textContent = '';
+        resultEl.classList.add('show');
+
+        let payload = { vertical: vertical.toUpperCase(), intent: 'EVALUATE', data: {} };
+
+        if (vertical === 'recycle') {
+            payload.data = { item: document.getElementById('recycle-item').value, phone: document.getElementById('recycle-phone').value };
+        } else if (vertical === 'vehicle') {
+            payload.data = {
+                marca: document.getElementById('vehicle-marca').value,
+                modelo: document.getElementById('vehicle-modelo').value,
+                ano: parseInt(document.getElementById('vehicle-ano').value),
+                precio: parseInt(document.getElementById('vehicle-precio').value)
+            };
+        } else if (vertical === 'kiosk') {
+            payload.data = {
+                order_id: parseInt(document.getElementById('kiosk-order').value),
+                items: document.getElementById('kiosk-items').value.split(',').map(s => s.trim())
+            };
+        }
+
+        try {
+            const resp = await fetch(AGENT_URL + '/decide', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const result = await resp.json();
+            titleEl.textContent = '✅ Resultado — ' + result.decision.toUpperCase();
+            jsonEl.textContent = JSON.stringify(result, null, 2);
+        } catch (err) {
+            titleEl.textContent = '❌ Error';
+            jsonEl.textContent = err.message + '\n\n(Verifica que el agente esté corriendo)';
+        }
+    }
+
+    // Load live stats
+    async function loadStats() {
+        try {
+            const resp = await fetch(AGENT_URL + '/recycle/stats');
+            const stats = await resp.json();
+            document.getElementById('stat-recycles').textContent = stats.total_recycles || 0;
+            document.getElementById('stat-cashback').textContent = '$' + (stats.total_cashback_clp || 0).toLocaleString('es-CL');
+            document.getElementById('stat-wallets').textContent = stats.active_wallets || 0;
+            document.getElementById('stat-items').textContent = Object.keys(stats.items_recycled || {}).length;
+        } catch (e) { /* silent fail */ }
+    }
+    loadStats();
+    setInterval(loadStats, 30000);
+
+    // Device detection for CTA
+    document.querySelectorAll('.hero .btn-primary').forEach(btn => {
+        if (btn.textContent.includes('Probar')) {
+            const isMobile = /Android|iPhone|iPad|iPod|Opera Mini/i.test(navigator.userAgent);
+            btn.href = isMobile ? '#demo' : 'https://food.ecocupon.cl/kiosk';
+            btn.textContent = isMobile ? '📸 Probar reciclaje' : '🖥️ Ver demo kiosk';
+        }
+    });
+</script>
+
+</body>
+</html>
