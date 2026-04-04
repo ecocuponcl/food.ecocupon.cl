@@ -1,0 +1,49 @@
+version: '3.9'
+
+services:
+  db:
+    image: postgres:16
+    container_name: food-odoo-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: food_kiosk
+      POSTGRES_USER: odoo
+      POSTGRES_PASSWORD: odoo
+    volumes:
+      - food_postgres_data:/var/lib/postgresql/data
+    networks:
+      - food-net
+
+  odoo:
+    image: odoo:17
+    container_name: food-odoo
+    depends_on:
+      - db
+    ports:
+      - "8070:8069"
+    environment:
+      HOST: db
+      PORT: 5432
+      USER: odoo
+      PASSWORD: odoo
+    volumes:
+      - food_odoo_data:/var/lib/odoo
+      - /root/food-kiosk-module/food_kiosk:/mnt/extra-addons/food_kiosk:ro
+    command: >
+      odoo
+      --addons-path=/usr/lib/python3/dist-packages/odoo/addons,/mnt/extra-addons
+      --db-filter=food_kiosk
+      --workers=2
+      --proxy-mode
+    restart: unless-stopped
+    networks:
+      - food-net
+
+networks:
+  food-net:
+    name: food-net
+    driver: bridge
+
+volumes:
+  food_postgres_data:
+  food_odoo_data:

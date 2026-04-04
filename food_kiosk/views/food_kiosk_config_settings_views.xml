@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_food_kiosk" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.food_kiosk</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <form position="inside">
+                <block title="Food Kiosk" name="food_kiosk_settings">
+                    <setting string="Enable Kiosk" help="Enable kiosk mode for touch-screen ordering">
+                        <field name="food_kiosk_enabled"/>
+                    </setting>
+                    <setting string="Agent URL" help="Payment agent URL (FastAPI service)">
+                        <field name="food_kiosk_agent_url"/>
+                    </setting>
+                    <setting string="Default Order Amount" help="Default order amount in CLP">
+                        <field name="food_kiosk_default_amount"/>
+                    </setting>
+                </block>
+            </form>
+        </field>
+    </record>
+</odoo>

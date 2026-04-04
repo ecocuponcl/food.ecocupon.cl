@@ -1,0 +1,408 @@
+/* ═══════════════════════════════════════════ */
+/* FOOD KIOSK — Touch-optimized vertical UI    */
+/* Max width: 480px, big buttons, high contrast */
+/* ═══════════════════════════════════════════ */
+
+:root {
+    --kiosk-bg: #1a1a2e;
+    --kiosk-surface: #16213e;
+    --kiosk-card: #0f3460;
+    --kiosk-primary: #e94560;
+    --kiosk-success: #00c853;
+    --kiosk-warning: #ff9800;
+    --kiosk-text: #ffffff;
+    --kiosk-text-secondary: #b0b0b0;
+    --kiosk-radius: 16px;
+    --kiosk-touch: 64px; /* minimum touch target */
+}
+
+/* Base */
+.kiosk-body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--kiosk-bg);
+    color: var(--kiosk-text);
+    max-width: 480px;
+    margin: 0 auto;
+    min-height: 100vh;
+    overflow-x: hidden;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+}
+
+/* 1. Coupon Banner */
+.kiosk-coupon-banner {
+    background: linear-gradient(135deg, #ff4d4d, #ff6b6b);
+    color: white;
+    padding: 14px 16px;
+    text-align: center;
+    font-weight: 700;
+    font-size: 16px;
+    letter-spacing: 0.5px;
+}
+
+/* 2. Header */
+.kiosk-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    background: var(--kiosk-surface);
+}
+
+.kiosk-logo {
+    font-size: 24px;
+    font-weight: 800;
+    margin: 0;
+}
+
+.kiosk-btn-cart {
+    width: var(--kiosk-touch);
+    height: var(--kiosk-touch);
+    border-radius: 50%;
+    border: none;
+    background: var(--kiosk-primary);
+    color: white;
+    font-size: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(233, 69, 96, 0.4);
+}
+
+.cart-count {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background: var(--kiosk-warning);
+    color: white;
+    font-size: 14px;
+    font-weight: 700;
+    min-width: 24px;
+    height: 24px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* 3. Tabs */
+.kiosk-tabs {
+    display: flex;
+    gap: 8px;
+    padding: 12px 16px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+
+.kiosk-tabs::-webkit-scrollbar { display: none; }
+
+.kiosk-tab {
+    padding: 10px 20px;
+    border-radius: 24px;
+    border: 2px solid var(--kiosk-card);
+    background: transparent;
+    color: var(--kiosk-text-secondary);
+    font-size: 15px;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    min-height: 44px;
+    transition: all 0.2s;
+}
+
+.kiosk-tab.active {
+    background: var(--kiosk-primary);
+    color: white;
+    border-color: var(--kiosk-primary);
+}
+
+/* 4. Promo Banner */
+.kiosk-promo-banner {
+    background: linear-gradient(135deg, var(--kiosk-card), #1a4a7a);
+    margin: 12px 16px;
+    padding: 16px;
+    border-radius: var(--kiosk-radius);
+    text-align: center;
+    font-size: 16px;
+    color: var(--kiosk-text);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* 5. Product Grid */
+.kiosk-products {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    padding: 12px 16px 100px;
+}
+
+.kiosk-product-card {
+    background: var(--kiosk-card);
+    border-radius: var(--kiosk-radius);
+    padding: 16px 12px;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+    border: 2px solid transparent;
+}
+
+.kiosk-product-card:active {
+    transform: scale(0.96);
+    border-color: var(--kiosk-primary);
+}
+
+.kiosk-product-img {
+    font-size: 48px;
+    margin-bottom: 8px;
+}
+
+.kiosk-product-name {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0 0 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.kiosk-product-price {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--kiosk-success);
+    margin-bottom: 8px;
+}
+
+.kiosk-btn-add {
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 10px;
+    background: var(--kiosk-primary);
+    color: white;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    min-height: 44px;
+}
+
+/* Cart Panel */
+.kiosk-cart-panel {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%) translateY(100%);
+    width: 100%;
+    max-width: 480px;
+    background: var(--kiosk-surface);
+    border-radius: 24px 24px 0 0;
+    box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    transition: transform 0.3s ease;
+    padding: 20px;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.kiosk-cart-panel.visible {
+    transform: translateX(-50%) translateY(0);
+}
+
+.kiosk-cart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.kiosk-cart-header h2 {
+    margin: 0;
+    font-size: 20px;
+}
+
+.kiosk-btn-close {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+.kiosk-cart-items {
+    min-height: 60px;
+}
+
+.kiosk-cart-empty {
+    text-align: center;
+    color: var(--kiosk-text-secondary);
+    padding: 20px;
+}
+
+.cart-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.cart-item-name {
+    font-weight: 600;
+}
+
+.cart-item-qty {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.cart-item-qty button {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    background: var(--kiosk-card);
+    color: white;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+.kiosk-cart-footer {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.kiosk-cart-total {
+    font-size: 22px;
+    text-align: center;
+    margin-bottom: 16px;
+}
+
+.kiosk-btn-pay {
+    width: 100%;
+    padding: 18px;
+    border: none;
+    border-radius: 16px;
+    background: linear-gradient(135deg, var(--kiosk-success), #00e676);
+    color: white;
+    font-size: 20px;
+    font-weight: 800;
+    cursor: pointer;
+    min-height: 60px;
+    box-shadow: 0 4px 16px rgba(0, 200, 83, 0.4);
+    letter-spacing: 0.5px;
+}
+
+.kiosk-btn-pay:active {
+    transform: scale(0.98);
+}
+
+/* Return page */
+.kiosk-return-container {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    text-align: center;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.kiosk-success, .kiosk-pending {
+    background: var(--kiosk-surface);
+    border-radius: 24px;
+    padding: 40px 24px;
+    width: 100%;
+}
+
+.kiosk-success-icon, .kiosk-pending-icon {
+    font-size: 72px;
+    margin-bottom: 16px;
+}
+
+.kiosk-success h1, .kiosk-pending h1 {
+    font-size: 28px;
+    margin-bottom: 12px;
+}
+
+.kiosk-wait-msg {
+    font-size: 20px;
+    margin-top: 20px;
+    color: var(--kiosk-warning);
+    font-weight: 700;
+}
+
+.kiosk-auto-redirect {
+    margin-top: 20px;
+    color: var(--kiosk-text-secondary);
+}
+
+/* Order status badge */
+.kiosk-order-status-badge {
+    display: inline-block;
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 16px;
+    margin: 12px 0;
+}
+
+.status-sale, .status-done {
+    background: rgba(0, 200, 83, 0.2);
+    color: var(--kiosk-success);
+}
+
+.status-draft {
+    background: rgba(255, 152, 0, 0.2);
+    color: var(--kiosk-warning);
+}
+
+/* Error page */
+.kiosk-error-page {
+    background: var(--kiosk-surface);
+    border-radius: 24px;
+    padding: 40px 24px;
+    width: 100%;
+}
+
+.kiosk-error-icon {
+    font-size: 72px;
+    margin-bottom: 16px;
+}
+
+/* Shared buttons */
+.kiosk-btn {
+    display: inline-block;
+    padding: 14px 28px;
+    border-radius: 12px;
+    border: none;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+    min-height: 50px;
+}
+
+.kiosk-btn-back {
+    background: var(--kiosk-card);
+    color: white;
+    margin-top: 24px;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.kiosk-product-card {
+    animation: fadeIn 0.3s ease forwards;
+}

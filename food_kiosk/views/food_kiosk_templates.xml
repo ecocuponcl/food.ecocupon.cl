@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- KIOSK HOME — Full screen touch UI          -->
+    <!-- ═══════════════════════════════════════════ -->
+    <template id="kiosk_home" name="Food Kiosk Home">
+        <t t-call="web.layout">
+            <t t-set="head">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+                <style>
+                    /* Inline critical styles for fast render */
+                    * { box-sizing: border-box; margin: 0; padding: 0; }
+                    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #1a1a2e; color: #fff; min-height: 100vh; }
+                </style>
+            </t>
+            <t t-set="head">
+                <link rel="stylesheet" href="/food_kiosk/static/src/css/kiosk.css"/>
+            </t>
+            <body class="kiosk-body">
+
+                <!-- 1. CUPÓN BANNER -->
+                <div class="kiosk-coupon-banner">
+                    🎉 30% descuento DELIVERY — Código: <strong>ECOCUPON30</strong>
+                </div>
+
+                <!-- 2. HEADER -->
+                <header class="kiosk-header">
+                    <h1 class="kiosk-logo">🍔 Food Ecocupon</h1>
+                    <button class="kiosk-btn kiosk-btn-cart" onclick="showCart()">
+                        🛒 <span class="cart-count">0</span>
+                    </button>
+                </header>
+
+                <!-- 3. TABS (Categories) -->
+                <nav class="kiosk-tabs" t-if="categories">
+                    <button t-foreach="categories" t-as="cat"
+                            t-att-data-category-id="cat.id"
+                            t-attf-class="kiosk-tab #{'active' if cat_index == 0 else ''}"
+                            t-esc="cat.name"
+                            onclick="filterCategory(this)">
+                    </button>
+                    <button class="kiosk-tab active" data-category-id="all" onclick="filterCategory(this)">
+                        Todos
+                    </button>
+                </nav>
+
+                <!-- 4. BANNER / PROMO -->
+                <div class="kiosk-promo-banner">
+                    <span>🔥 Combo Especial — <strong>$9.990</strong> — ¡Pide ahora!</span>
+                </div>
+
+                <!-- 5. PRODUCT GRID -->
+                <div class="kiosk-products" id="productGrid">
+                    <t t-foreach="products" t-as="product">
+                        <div class="kiosk-product-card"
+                             t-att-data-product-id="product.id"
+                             t-att-data-price="product.list_price"
+                             onclick="addToCart(this)">
+                            <div class="kiosk-product-img">🍽️</div>
+                            <h3 class="kiosk-product-name" t-esc="product.name"/>
+                            <div class="kiosk-product-price">
+                                $<t t-esc="'{:,.0f}'.format(product.list_price).replace(',', '.')"/>
+                            </div>
+                            <button class="kiosk-btn-add">+ Agregar</button>
+                        </div>
+                    </t>
+                </div>
+
+                <!-- CART PANEL (hidden by default) -->
+                <div class="kiosk-cart-panel" id="cartPanel">
+                    <div class="kiosk-cart-header">
+                        <h2>🛒 Tu Pedido</h2>
+                        <button class="kiosk-btn-close" onclick="hideCart()">✕</button>
+                    </div>
+                    <div class="kiosk-cart-items" id="cartItems">
+                        <p class="kiosk-cart-empty">Agrega productos a tu pedido</p>
+                    </div>
+                    <div class="kiosk-cart-footer">
+                        <div class="kiosk-cart-total">
+                            Total: <strong id="cartTotal">$0</strong>
+                        </div>
+                        <button class="kiosk-btn-pay" onclick="payOrder()">
+                            💳 Pagar Ahora
+                        </button>
+                    </div>
+                </div>
+
+                <script src="/food_kiosk/static/src/js/kiosk.js"/>
+            </body>
+        </t>
+    </template>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- RETURN PAGE — After Flow payment redirect  -->
+    <!-- ═══════════════════════════════════════════ -->
+    <template id="kiosk_return" name="Food Kiosk Payment Return">
+        <t t-call="web.layout">
+            <t t-set="head">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+                <link rel="stylesheet" href="/food_kiosk/static/src/css/kiosk.css"/>
+            </t>
+            <body class="kiosk-body">
+                <div class="kiosk-return-container">
+                    <t t-if="status == 'paid'">
+                        <div class="kiosk-success">
+                            <div class="kiosk-success-icon">✅</div>
+                            <h1>¡Pago Exitoso!</h1>
+                            <t t-if="order">
+                                <p>Pedido: <strong t-esc="order.name"/></p>
+                                <p>Estado: <strong t-esc="order.state"/></p>
+                            </t>
+                            <p class="kiosk-wait-msg">Tu pedido está siendo preparado 🍳</p>
+                        </div>
+                    </t>
+                    <t t-else="">
+                        <div class="kiosk-pending">
+                            <div class="kiosk-pending-icon">⏳</div>
+                            <h1>Procesando pago...</h1>
+                            <p>Por favor espera la confirmación</p>
+                            <p class="kiosk-auto-redirect">Redirigiendo en <span id="countdown">5</span> segundos...</p>
+                        </div>
+                        <script type="text/javascript">
+                            <![CDATA[
+                            let count = 5;
+                            const timer = setInterval(function() {
+                                count--;
+                                const el = document.getElementById('countdown');
+                                if (el) el.textContent = count;
+                                if (count <= 0) {
+                                    clearInterval(timer);
+                                    window.location.href = '/kiosk';
+                                }
+                            }, 1000);
+                            ]]>
+                        </script>
+                    </t>
+                </div>
+            </body>
+        </t>
+    </template>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- ORDER STATUS PAGE                           -->
+    <!-- ═══════════════════════════════════════════ -->
+    <template id="kiosk_order_status" name="Food Kiosk Order Status">
+        <t t-call="web.layout">
+            <t t-set="head">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+                <link rel="stylesheet" href="/food_kiosk/static/src/css/kiosk.css"/>
+            </t>
+            <body class="kiosk-body">
+                <div class="kiosk-return-container">
+                    <h1>Pedido <t t-esc="order.name"/></h1>
+                    <div class="kiosk-order-status-badge" t-attf-class="status-#{order.state}">
+                        <t t-if="order.state == 'sale' or order.state == 'done'">
+                            ✅ Confirmado
+                        </t>
+                        <t t-elif="order.state == 'draft'">
+                            ⏳ Pendiente de pago
+                        </t>
+                        <t t-else="">
+                            <t t-esc="order.state"/>
+                        </t>
+                    </div>
+                    <a href="/kiosk" class="kiosk-btn kiosk-btn-back">← Volver al Kiosco</a>
+                </div>
+            </body>
+        </t>
+    </template>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- ERROR PAGE                                  -->
+    <!-- ═══════════════════════════════════════════ -->
+    <template id="kiosk_error" name="Food Kiosk Error">
+        <t t-call="web.layout">
+            <t t-set="head">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+                <link rel="stylesheet" href="/food_kiosk/static/src/css/kiosk.css"/>
+            </t>
+            <body class="kiosk-body">
+                <div class="kiosk-return-container">
+                    <div class="kiosk-error-page">
+                        <div class="kiosk-error-icon">❌</div>
+                        <h1>Error</h1>
+                        <p t-esc="message"/>
+                        <a href="/kiosk" class="kiosk-btn kiosk-btn-back">← Volver al Kiosco</a>
+                    </div>
+                </div>
+            </body>
+        </t>
+    </template>
+
+</odoo>
