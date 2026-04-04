@@ -1,6 +1,6 @@
 {
     "name": "Food Kiosk",
-    "version": "1.0.0",
+    "version": "19.0.1.0.0",
     "category": "Sales/Point of Sale",
     "summary": "Kiosk touch-screen ordering + Flow.cl payment integration",
     "description": """

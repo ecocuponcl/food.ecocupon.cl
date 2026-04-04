@@ -18,8 +18,7 @@ class FoodKioskController(http.Controller):
     def kiosk_home(self, **kw):
         """Main kiosk screen — full screen, touch-optimized."""
         products = request.env['product.product'].sudo().search([
-            ('detailed_type', '=', 'consu'),
-            ('website_published', '=', True),
+            ('type', '=', 'consu'),
             ('sale_ok', '=', True),
         ], order='name')
         categories = request.env['product.public.category'].sudo().search([], order='sequence')
