@@ -134,3 +134,30 @@ cloudflared tunnel run ecocupon-agent
 
 - **Kiosk**: `https://food.ecocupon.cl/kiosk`
 - **Admin Odoo**: `https://food.ecocupon.cl/web/login` (admin / admin123)
+
+## Supabase (Source of Truth)
+
+Project: `https://rjfcmmzjlguiititkmyh.supabase.co`
+
+### Existing tables (46):
+tenants, users, clients, contracts, payments, messages, events, products, categories, accounts, subscriptions, trials, and more.
+
+### Food Kiosk tables (migration SQL):
+`supabase/001_food_kiosk_schema.sql` — food_kiosk_orders, food_kiosk_payments, food_kiosk_dte, food_kiosk_events
+
+### Tenant: ecocupon
+- ID: `471b0075-6409-473d-bb74-36517b7d7f74`
+- Name: EcoCupon Food Kiosk
+- Status: active
+
+## Chatwoot
+Compose: `/root/chatwoot/docker-compose.yml`
+Port: 3005 (needs Ruby 3.4 fix in image)
+
+## n8n Workflows (45 available)
+Directory: `/root/os.smarterbot.cl/n8n-workflows/`
+Key: `04-dte-facturacion.json`, `20-ecocupon-auto-response.json`, `ecocupon-odoo-emdash.json`
+
+## DTE/LibreDTE
+Compose: `/root/smarteros-runtime/dte/docker-compose.yml`
+Status: Ready — needs SII certificates (`firma.p12` + passphrase)
