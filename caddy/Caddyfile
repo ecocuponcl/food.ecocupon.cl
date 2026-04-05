@@ -56,3 +56,10 @@ llm.smarterbot.store {
 docling.smarterbot.store {
     reverse_proxy http://localhost:5001
 }
+
+# ── Cloudflare AI Agent (requires DNS: ai.smarterbot.cl) ──
+# ai.smarterbot.cl {
+#     reverse_proxy https://ecocupon-ai-agent.ecocupon-cl.workers.dev {
+#         header_up Host {upstream_hostport}
+#     }
+# }
