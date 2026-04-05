@@ -3,112 +3,156 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EcoCupon — Convierte residuos y activos en dinero</title>
-    <meta name="description" content="Sistema que convierte cualquier activo en dinero automáticamente. Reciclaje, vehículos, kioscos con IA.">
+    <title>EcoCupon — Convierte residuos en dinero</title>
+    <meta name="description" content="Sistema que convierte cualquier activo en dinero automáticamente. Reciclaje con cashback real.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #1a1a1a; }
-        .container { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
+        body { font-family: 'Inter', -apple-system, sans-serif; line-height: 1.6; color: #1a1a1a; background: #fafafa; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
 
-        /* Hero */
-        .hero { background: linear-gradient(135deg, #0f766e 0%, #059669 50%, #10b981 100%); color: white; padding: 80px 0 60px; text-align: center; }
-        .hero h1 { font-size: 2.5rem; font-weight: 800; margin-bottom: 16px; line-height: 1.2; }
-        .hero p { font-size: 1.25rem; opacity: 0.9; margin-bottom: 32px; max-width: 600px; margin-left: auto; margin-right: auto; }
-        .hero .cta-group { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
-        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 16px 32px; border-radius: 12px; font-size: 1.1rem; font-weight: 600; text-decoration: none; border: none; cursor: pointer; transition: all 0.2s; }
-        .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.15); }
-        .btn-primary { background: white; color: #059669; }
-        .btn-secondary { background: rgba(255,255,255,0.15); color: white; border: 2px solid rgba(255,255,255,0.3); }
+        /* ── NAV ─────────────────────────────────────── */
+        nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(0,0,0,0.85); backdrop-filter: blur(20px); padding: 16px 0; }
+        nav .container { display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 1.5rem; font-weight: 900; color: white; text-decoration: none; }
+        .logo span { color: #10b981; }
+        .nav-cta { background: #10b981; color: white; padding: 10px 24px; border-radius: 50px; text-decoration: none; font-weight: 600; font-size: 0.9rem; transition: all 0.2s; }
+        .nav-cta:hover { background: #059669; transform: scale(1.05); }
+
+        /* ── HERO ────────────────────────────────────── */
+        .hero { position: relative; min-height: 100vh; display: flex; align-items: center; overflow: hidden; }
+        .hero-bg { position: absolute; inset: 0; background: url('https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=1920&q=80') center/cover; }
+        .hero-bg::after { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 50%, rgba(16,185,129,0.3) 100%); }
+        .hero-content { position: relative; z-index: 2; color: white; max-width: 700px; }
+        .hero-badge { display: inline-block; background: rgba(16,185,129,0.2); border: 1px solid rgba(16,185,129,0.4); color: #6ee7b7; padding: 8px 20px; border-radius: 50px; font-size: 0.85rem; font-weight: 600; margin-bottom: 24px; backdrop-filter: blur(10px); }
+        .hero h1 { font-size: clamp(2.5rem, 6vw, 4.5rem); font-weight: 900; line-height: 1.05; margin-bottom: 20px; letter-spacing: -0.03em; }
+        .hero h1 .accent { color: #10b981; }
+        .hero p { font-size: clamp(1.1rem, 2vw, 1.35rem); opacity: 0.9; margin-bottom: 40px; max-width: 550px; line-height: 1.7; }
+        .hero-buttons { display: flex; gap: 16px; flex-wrap: wrap; }
+        .btn { display: inline-flex; align-items: center; gap: 10px; padding: 18px 36px; border-radius: 60px; font-size: 1.1rem; font-weight: 700; text-decoration: none; border: none; cursor: pointer; transition: all 0.3s; }
+        .btn:hover { transform: translateY(-3px); box-shadow: 0 12px 35px rgba(0,0,0,0.2); }
+        .btn-primary { background: #10b981; color: white; }
+        .btn-primary:hover { background: #059669; }
+        .btn-outline { background: rgba(255,255,255,0.1); color: white; border: 2px solid rgba(255,255,255,0.3); backdrop-filter: blur(10px); }
+        .btn-outline:hover { background: rgba(255,255,255,0.2); border-color: white; }
         .btn-whatsapp { background: #25d366; color: white; }
+        .btn-whatsapp:hover { background: #128c7e; }
 
-        /* Steps */
-        .steps { padding: 60px 0; background: #f8fafc; }
-        .steps h2 { text-align: center; font-size: 2rem; margin-bottom: 40px; }
-        .steps-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; }
-        .step { background: white; padding: 30px; border-radius: 16px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-        .step-icon { font-size: 3rem; margin-bottom: 16px; }
-        .step h3 { margin-bottom: 8px; color: #0f766e; }
+        /* ── STATS BAR ───────────────────────────────── */
+        .stats-bar { background: white; border-bottom: 1px solid #e5e7eb; padding: 30px 0; }
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; text-align: center; }
+        .stat-value { font-size: 2.5rem; font-weight: 900; color: #10b981; line-height: 1; }
+        .stat-label { color: #6b7280; font-size: 0.85rem; margin-top: 6px; font-weight: 500; }
 
-        /* Verticals */
-        .verticals { padding: 60px 0; }
-        .verticals h2 { text-align: center; font-size: 2rem; margin-bottom: 40px; }
-        .verticals-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; }
-        .vertical-card { border: 2px solid #e5e7eb; border-radius: 16px; padding: 30px; transition: all 0.2s; }
-        .vertical-card:hover { border-color: #059669; box-shadow: 0 4px 20px rgba(5,150,105,0.1); }
-        .vertical-card h3 { font-size: 1.5rem; margin-bottom: 12px; }
-        .vertical-card .flow { background: #f0fdf4; padding: 16px; border-radius: 8px; margin: 16px 0; font-family: monospace; font-size: 0.9rem; }
-        .vertical-card .btn { width: 100%; justify-content: center; margin-top: 16px; }
+        /* ── HOW IT WORKS ────────────────────────────── */
+        .how { padding: 100px 0; background: white; }
+        .section-title { text-align: center; font-size: clamp(2rem, 4vw, 3rem); font-weight: 900; margin-bottom: 16px; letter-spacing: -0.02em; }
+        .section-sub { text-align: center; color: #6b7280; font-size: 1.15rem; max-width: 600px; margin: 0 auto 60px; }
+        .steps-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; }
+        .step { text-align: center; padding: 40px 30px; border-radius: 24px; background: #f9fafb; border: 1px solid #e5e7eb; transition: all 0.3s; }
+        .step:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0,0,0,0.08); border-color: #10b981; }
+        .step-img { width: 100%; height: 200px; object-fit: cover; border-radius: 16px; margin-bottom: 24px; }
+        .step-num { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; background: #10b981; color: white; border-radius: 50%; font-weight: 800; font-size: 1.1rem; margin-bottom: 16px; }
+        .step h3 { font-size: 1.35rem; font-weight: 800; margin-bottom: 10px; }
+        .step p { color: #6b7280; font-size: 0.95rem; }
 
-        /* Demo */
-        .demo { padding: 60px 0; background: #0f766e; color: white; }
-        .demo h2 { text-align: center; font-size: 2rem; margin-bottom: 16px; }
-        .demo p { text-align: center; opacity: 0.9; margin-bottom: 30px; }
-        .demo-box { background: white; color: #1a1a1a; border-radius: 16px; padding: 30px; max-width: 600px; margin: 0 auto; }
-        .demo-tabs { display: flex; gap: 8px; margin-bottom: 20px; }
-        .demo-tab { flex: 1; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; background: white; cursor: pointer; font-weight: 600; text-align: center; transition: all 0.2s; }
-        .demo-tab.active { border-color: #059669; background: #f0fdf4; color: #059669; }
+        /* ── VERTICALS ───────────────────────────────── */
+        .verticals { padding: 100px 0; background: #f9fafb; }
+        .vert-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; }
+        .vert-card { background: white; border-radius: 24px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.06); transition: all 0.3s; }
+        .vert-card:hover { transform: translateY(-8px); box-shadow: 0 20px 50px rgba(0,0,0,0.12); }
+        .vert-img { width: 100%; height: 240px; object-fit: cover; }
+        .vert-body { padding: 30px; }
+        .vert-body h3 { font-size: 1.5rem; font-weight: 800; margin-bottom: 10px; }
+        .vert-body p { color: #6b7280; margin-bottom: 20px; }
+        .vert-flow { background: #f0fdf4; padding: 14px 18px; border-radius: 12px; font-family: 'SF Mono', monospace; font-size: 0.85rem; color: #059669; margin-bottom: 20px; }
+        .vert-card .btn { width: 100%; justify-content: center; padding: 14px; font-size: 1rem; }
+
+        /* ── DEMO ────────────────────────────────────── */
+        .demo { padding: 100px 0; background: linear-gradient(135deg, #064e3b 0%, #065f46 50%, #047857 100%); color: white; }
+        .demo-box { background: white; color: #1a1a1a; border-radius: 24px; padding: 40px; max-width: 650px; margin: 0 auto; box-shadow: 0 25px 60px rgba(0,0,0,0.3); }
+        .demo-tabs { display: flex; gap: 8px; margin-bottom: 24px; }
+        .demo-tab { flex: 1; padding: 14px; border: 2px solid #e5e7eb; border-radius: 12px; background: white; cursor: pointer; font-weight: 700; text-align: center; transition: all 0.2s; font-size: 0.95rem; }
+        .demo-tab.active { border-color: #10b981; background: #f0fdf4; color: #059669; }
         .demo-form { display: none; }
         .demo-form.active { display: block; }
-        .demo-form input, .demo-form select { width: 100%; padding: 12px; margin-bottom: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 1rem; }
-        .demo-form .btn { width: 100%; justify-content: center; background: #059669; color: white; }
-        .demo-result { margin-top: 20px; padding: 20px; background: #f0fdf4; border-radius: 8px; display: none; }
+        .demo-form input, .demo-form select { width: 100%; padding: 14px 18px; margin-bottom: 14px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 1rem; font-family: inherit; transition: border-color 0.2s; }
+        .demo-form input:focus, .demo-form select:focus { outline: none; border-color: #10b981; }
+        .demo-form .btn { width: 100%; justify-content: center; background: #10b981; color: white; padding: 16px; }
+        .demo-result { margin-top: 24px; padding: 24px; background: #f0fdf4; border-radius: 16px; display: none; }
         .demo-result.show { display: block; }
-        .demo-result h4 { color: #059669; margin-bottom: 8px; }
-        .demo-result pre { background: #1a1a1a; color: #10b981; padding: 16px; border-radius: 8px; overflow-x: auto; font-size: 0.85rem; }
+        .demo-result h4 { color: #059669; margin-bottom: 12px; font-size: 1.2rem; }
+        .demo-result pre { background: #1a1a1a; color: #10b981; padding: 20px; border-radius: 12px; overflow-x: auto; font-size: 0.8rem; line-height: 1.6; }
 
-        /* Pricing */
-        .pricing { padding: 60px 0; background: #f8fafc; }
-        .pricing h2 { text-align: center; font-size: 2rem; margin-bottom: 40px; }
-        .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; max-width: 900px; margin: 0 auto; }
-        .pricing-card { background: white; border-radius: 16px; padding: 30px; text-align: center; border: 2px solid #e5e7eb; position: relative; }
-        .pricing-card.featured { border-color: #059669; box-shadow: 0 4px 20px rgba(5,150,105,0.15); }
-        .pricing-card.featured::before { content: "⭐ Popular"; position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: #059669; color: white; padding: 4px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
-        .pricing-card h3 { font-size: 1.5rem; margin-bottom: 8px; }
-        .pricing-card .price { font-size: 2.5rem; font-weight: 800; color: #059669; margin: 16px 0; }
-        .pricing-card .price span { font-size: 1rem; font-weight: 400; color: #6b7280; }
-        .pricing-card ul { list-style: none; margin: 20px 0; text-align: left; }
-        .pricing-card ul li { padding: 8px 0; border-bottom: 1px solid #f3f4f6; }
-        .pricing-card ul li::before { content: "✓ "; color: #059669; font-weight: 600; }
+        /* ── PRICING ─────────────────────────────────── */
+        .pricing { padding: 100px 0; background: white; }
+        .pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; max-width: 1000px; margin: 0 auto; }
+        .price-card { background: white; border-radius: 24px; padding: 40px 30px; text-align: center; border: 2px solid #e5e7eb; position: relative; transition: all 0.3s; }
+        .price-card:hover { transform: translateY(-8px); box-shadow: 0 20px 50px rgba(0,0,0,0.1); }
+        .price-card.featured { border-color: #10b981; box-shadow: 0 10px 40px rgba(16,185,129,0.15); }
+        .price-card.featured::before { content: "⭐ Popular"; position: absolute; top: -14px; left: 50%; transform: translateX(-50%); background: #10b981; color: white; padding: 6px 20px; border-radius: 50px; font-size: 0.8rem; font-weight: 700; }
+        .price-card h3 { font-size: 1.4rem; font-weight: 800; margin-bottom: 8px; }
+        .price-card .price { font-size: 3rem; font-weight: 900; color: #10b981; margin: 20px 0; }
+        .price-card .price span { font-size: 1rem; font-weight: 500; color: #6b7280; }
+        .price-card ul { list-style: none; margin: 24px 0; text-align: left; }
+        .price-card ul li { padding: 10px 0; border-bottom: 1px solid #f3f4f6; font-size: 0.95rem; }
+        .price-card ul li::before { content: "✓ "; color: #10b981; font-weight: 700; }
+        .price-card .btn { width: 100%; justify-content: center; padding: 14px; }
 
-        /* Stats */
-        .stats { padding: 40px 0; background: white; }
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px; text-align: center; }
-        .stat-value { font-size: 2.5rem; font-weight: 800; color: #059669; }
-        .stat-label { color: #6b7280; font-size: 0.9rem; }
+        /* ── CTA ─────────────────────────────────────── */
+        .cta-section { padding: 100px 0; background: linear-gradient(135deg, #064e3b, #059669); color: white; text-align: center; }
+        .cta-section h2 { font-size: clamp(2rem, 4vw, 3rem); font-weight: 900; margin-bottom: 16px; }
+        .cta-section p { opacity: 0.9; margin-bottom: 40px; font-size: 1.2rem; }
 
-        /* CTA */
-        .cta-section { padding: 60px 0; background: linear-gradient(135deg, #0f766e, #059669); color: white; text-align: center; }
-        .cta-section h2 { font-size: 2rem; margin-bottom: 16px; }
-        .cta-section p { opacity: 0.9; margin-bottom: 30px; font-size: 1.1rem; }
-
-        /* Footer */
-        footer { background: #1a1a1a; color: #9ca3af; padding: 30px 0; text-align: center; font-size: 0.9rem; }
+        /* ── FOOTER ──────────────────────────────────── */
+        footer { background: #111827; color: #9ca3af; padding: 40px 0; text-align: center; font-size: 0.9rem; }
         footer a { color: #10b981; text-decoration: none; }
 
-        /* Responsive */
-        @media (max-width: 768px) {
-            .hero h1 { font-size: 1.8rem; }
-            .hero p { font-size: 1rem; }
-            .steps-grid, .verticals-grid, .pricing-grid { grid-template-columns: 1fr; }
+        /* ── RESPONSIVE ──────────────────────────────── */
+        @media (max-width: 900px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .steps-grid, .vert-grid, .pricing-grid { grid-template-columns: 1fr; max-width: 500px; margin-left: auto; margin-right: auto; }
+            .hero { min-height: 90vh; }
+            .hero-buttons { flex-direction: column; }
+            .btn { width: 100%; justify-content: center; }
+        }
+        @media (max-width: 600px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+            .stat-value { font-size: 1.8rem; }
+            .demo-box { padding: 24px; }
+            .demo-tabs { flex-direction: column; }
         }
     </style>
 </head>
 <body>
 
-<!-- Hero -->
-<section class="hero">
+<!-- NAV -->
+<nav>
     <div class="container">
-        <h1>Convierte residuos y activos<br>en dinero automáticamente</h1>
-        <p>📸 Sube una foto o ingresa un activo<br>🧠 La IA decide qué hacer<br>💸 Recibe dinero o cashback</p>
-        <div class="cta-group">
-            <a href="#demo" class="btn btn-primary">🚀 Probar ahora</a>
-            <a href="#pricing" class="btn btn-secondary">💰 Ver planes</a>
+        <a href="#" class="logo">Eco<span>Cupon</span></a>
+        <a href="https://odoo.smarterbot.store/pos-self/2?access_token=c8cccd9b281a4e35" class="nav-cta" target="_blank">🛒 PEDIR</a>
+    </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+    <div class="hero-bg"></div>
+    <div class="container">
+        <div class="hero-content">
+            <div class="hero-badge">♻️ Cashback real por reciclar</div>
+            <h1>Convierte residuos en <span class="accent">dinero</span></h1>
+            <p>Compra, recicla y recibe dinero en tu wallet. La IA valora cada envase y te paga al instante.</p>
+            <div class="hero-buttons">
+                <a href="https://odoo.smarterbot.store/pos-self/2?access_token=c8cccd9b281a4e35" class="btn btn-primary" target="_blank">🛒 PEDIR AHORA</a>
+                <a href="https://wa.me/56979540471?text=Hola!%20Quiero%20saber%20más%20sobre%20EcoCupon" class="btn btn-outline" target="_blank">📲 WhatsApp</a>
+            </div>
         </div>
     </div>
 </section>
 
-<!-- Stats -->
-<section class="stats">
+<!-- STATS -->
+<section class="stats-bar">
     <div class="container">
         <div class="stats-grid" id="live-stats">
             <div><div class="stat-value" id="stat-recycles">0</div><div class="stat-label">Reciclajes hoy</div></div>
@@ -119,62 +163,76 @@
     </div>
 </section>
 
-<!-- Steps -->
-<section class="steps">
+<!-- HOW IT WORKS -->
+<section class="how">
     <div class="container">
-        <h2>¿Cómo funciona?</h2>
+        <h2 class="section-title">¿Cómo funciona?</h2>
+        <p class="section-sub">3 pasos simples para convertir tus residuos en dinero real</p>
         <div class="steps-grid">
             <div class="step">
-                <div class="step-icon">📸</div>
-                <h3>1. Escanea o ingresa</h3>
-                <p>Sube una foto de tu envase o ingresa datos de un activo</p>
+                <img src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&q=80" alt="Compra" class="step-img">
+                <div class="step-num">1</div>
+                <h3>Compra</h3>
+                <p>Haz tu pedido en el kiosco. Cada producto genera QR de reciclaje automático.</p>
             </div>
             <div class="step">
-                <div class="step-icon">🧠</div>
-                <h3>2. La IA decide</h3>
-                <p>Analiza valor de mercado, fraude y mejor opción económica</p>
+                <img src="https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?w=600&q=80" alt="Recicla" class="step-img">
+                <div class="step-num">2</div>
+                <h3>Recicla</h3>
+                <p>Escanea el QR del envase, sube una foto y la IA valida al instante.</p>
             </div>
             <div class="step">
-                <div class="step-icon">💸</div>
-                <h3>3. Recibe dinero</h3>
-                <p>Cashback en wallet, oferta de compra o recomendación de reciclaje</p>
+                <img src="https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=600&q=80" alt="Recibe dinero" class="step-img">
+                <div class="step-num">3</div>
+                <h3>Recibe dinero</h3>
+                <p>Cashback acreditado en tu wallet. Úsalo en tu próxima compra.</p>
             </div>
         </div>
     </div>
 </section>
 
-<!-- Verticals -->
+<!-- VERTICALS -->
 <section class="verticals">
     <div class="container">
-        <h2>3 Verticales, 1 Cerebro</h2>
-        <div class="verticals-grid">
-            <div class="vertical-card">
-                <h3>♻️ Reciclaje</h3>
-                <p>Convierte envases en cashback real para tus clientes</p>
-                <div class="flow">Foto → IA valida → $ a wallet</div>
-                <a href="#demo" class="btn btn-primary" onclick="selectTab('recycle')">Probar reciclaje</a>
+        <h2 class="section-title">3 verticales, 1 cerebro</h2>
+        <p class="section-sub">IA que decide el mejor retorno para cada activo</p>
+        <div class="vert-grid">
+            <div class="vert-card">
+                <img src="https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?w=600&q=80" alt="Reciclaje" class="vert-img">
+                <div class="vert-body">
+                    <h3>♻️ Reciclaje</h3>
+                    <p>Convierte envases en cashback real para tus clientes</p>
+                    <div class="vert-flow">Foto → IA valida → $ a wallet</div>
+                    <a href="#demo" class="btn btn-primary">Probar reciclaje</a>
+                </div>
             </div>
-            <div class="vertical-card">
-                <h3>🚗 Vehículos</h3>
-                <p>Valuación inteligente + decisión comprar/negociar/descartar</p>
-                <div class="flow">Patente + precio → Scoring → Decisión</div>
-                <a href="#demo" class="btn btn-primary" onclick="selectTab('vehicle')">Probar vehículo</a>
+            <div class="vert-card">
+                <img src="https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=600&q=80" alt="Vehículos" class="vert-img">
+                <div class="vert-body">
+                    <h3>🚗 Vehículos</h3>
+                    <p>Valuación inteligente + decisión comprar/negociar/descartar</p>
+                    <div class="vert-flow">Patente + precio → Scoring → Decisión</div>
+                    <a href="#demo" class="btn btn-primary">Probar vehículo</a>
+                </div>
             </div>
-            <div class="vertical-card">
-                <h3>🍔 Kiosk</h3>
-                <p>Kiosco táctil con pagos Flow + QR reciclaje automático</p>
-                <div class="flow">Compra → QR envase → Cashback</div>
-                <a href="https://food.ecocupon.cl/kiosk" class="btn btn-primary" target="_blank">Ver demo kiosk</a>
+            <div class="vert-card">
+                <img src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600&q=80" alt="Kiosk" class="vert-img">
+                <div class="vert-body">
+                    <h3>🍔 Kiosk</h3>
+                    <p>Kiosco táctil con pagos Flow + QR reciclaje automático</p>
+                    <div class="vert-flow">Compra → QR envase → Cashback</div>
+                    <a href="https://odoo.smarterbot.store/pos-self/2?access_token=c8cccd9b281a4e35" class="btn btn-primary" target="_blank">🛒 PEDIR</a>
+                </div>
             </div>
         </div>
     </div>
 </section>
 
-<!-- Demo -->
+<!-- DEMO -->
 <section class="demo" id="demo">
     <div class="container">
-        <h2>🧪 Pruébalo ahora</h2>
-        <p>La IA decide en tiempo real — sin registro</p>
+        <h2 class="section-title" style="color:white">🧪 Pruébalo ahora</h2>
+        <p class="section-sub" style="color:rgba(255,255,255,0.8)">La IA decide en tiempo real — sin registro</p>
         <div class="demo-box">
             <div class="demo-tabs">
                 <button class="demo-tab active" onclick="selectTab('recycle')">♻️ Reciclaje</button>
@@ -182,14 +240,12 @@
                 <button class="demo-tab" onclick="selectTab('kiosk')">🍔 Kiosk</button>
             </div>
 
-            <!-- Recycle Form -->
             <div class="demo-form active" id="form-recycle">
                 <input type="text" id="recycle-item" placeholder="Tipo de envase (ej: pet_500, lata, vidrio_750)" value="pet_500">
                 <input type="tel" id="recycle-phone" placeholder="Teléfono (ej: 56912345678)" value="56912345678">
                 <button class="btn" onclick="runDemo('recycle')">🧠 Analizar envase</button>
             </div>
 
-            <!-- Vehicle Form -->
             <div class="demo-form" id="form-vehicle">
                 <input type="text" id="vehicle-marca" placeholder="Marca (ej: Toyota)" value="Toyota">
                 <input type="text" id="vehicle-modelo" placeholder="Modelo (ej: Yaris)" value="Yaris">
@@ -198,7 +254,6 @@
                 <button class="btn" onclick="runDemo('vehicle')">🔍 Analizar vehículo</button>
             </div>
 
-            <!-- Kiosk Form -->
             <div class="demo-form" id="form-kiosk">
                 <input type="number" id="kiosk-order" placeholder="N° Orden" value="42">
                 <input type="text" id="kiosk-items" placeholder="Items (separados por coma)" value="Sixpack cerveza, Hamburguesa combo, Bebida 1.5L">
@@ -213,12 +268,13 @@
     </div>
 </section>
 
-<!-- Pricing -->
+<!-- PRICING -->
 <section class="pricing" id="pricing">
     <div class="container">
-        <h2>Planes</h2>
+        <h2 class="section-title">Planes</h2>
+        <p class="section-sub">Instalación en 24 horas. Sin contratos largos.</p>
         <div class="pricing-grid">
-            <div class="pricing-card">
+            <div class="price-card">
                 <h3>Básico</h3>
                 <div class="price">$99.900<span>/mes</span></div>
                 <ul>
@@ -227,9 +283,9 @@
                     <li>Dashboard básico</li>
                     <li>Soporte email</li>
                 </ul>
-                <a href="https://wa.me/56979540471?text=Hola!%20Me%20interesa%20el%20plan%20Básico%20de%20EcoCupon" class="btn btn-secondary" target="_blank">Empezar</a>
+                <a href="https://wa.me/56979540471?text=Hola!%20Me%20interesa%20el%20plan%20Básico%20de%20EcoCupon" class="btn btn-outline" style="color:#10b981;border-color:#10b981" target="_blank">Empezar</a>
             </div>
-            <div class="pricing-card featured">
+            <div class="price-card featured">
                 <h3>Reciclaje</h3>
                 <div class="price">$199.900<span>/mes</span></div>
                 <ul>
@@ -241,7 +297,7 @@
                 </ul>
                 <a href="https://wa.me/56979540471?text=Hola!%20Me%20interesa%20el%20plan%20Reciclaje%20de%20EcoCupon" class="btn btn-primary" target="_blank">Probar 7 días gratis</a>
             </div>
-            <div class="pricing-card">
+            <div class="price-card">
                 <h3>Enterprise</h3>
                 <div class="price">$399.900<span>/mes</span></div>
                 <ul>
@@ -251,7 +307,7 @@
                     <li>Soporte prioritario</li>
                     <li>API completa</li>
                 </ul>
-                <a href="https://wa.me/56979540471?text=Hola!%20Me%20interesa%20el%20plan%20Enterprise%20de%20EcoCupon" class="btn btn-secondary" target="_blank">Agendar demo</a>
+                <a href="https://wa.me/56979540471?text=Hola!%20Me%20interesa%20el%20plan%20Enterprise%20de%20EcoCupon" class="btn btn-outline" style="color:#10b981;border-color:#10b981" target="_blank">Agendar demo</a>
             </div>
         </div>
     </div>
@@ -266,7 +322,7 @@
     </div>
 </section>
 
-<!-- Footer -->
+<!-- FOOTER -->
 <footer>
     <div class="container">
         <p>© 2026 EcoCupon — Smarter SPA | <a href="https://github.com/ecocuponcl/food.ecocupon.cl" target="_blank">GitHub</a> | <a href="https://agent.food.ecocupon.cl/docs" target="_blank">API Docs</a></p>
@@ -280,7 +336,6 @@
         document.querySelectorAll('.demo-tab').forEach(t => t.classList.remove('active'));
         document.querySelectorAll('.demo-form').forEach(f => f.classList.remove('active'));
         document.getElementById('demo-result').classList.remove('show');
-
         const tabs = { recycle: 0, vehicle: 1, kiosk: 2 };
         document.querySelectorAll('.demo-tab')[tabs[tab]].classList.add('active');
         document.getElementById('form-' + tab).classList.add('active');
@@ -290,13 +345,11 @@
         const resultEl = document.getElementById('demo-result');
         const titleEl = document.getElementById('result-title');
         const jsonEl = document.getElementById('result-json');
-
         titleEl.textContent = '⏳ Analizando...';
         jsonEl.textContent = '';
         resultEl.classList.add('show');
 
         let payload = { vertical: vertical.toUpperCase(), intent: 'EVALUATE', data: {} };
-
         if (vertical === 'recycle') {
             payload.data = { item: document.getElementById('recycle-item').value, phone: document.getElementById('recycle-phone').value };
         } else if (vertical === 'vehicle') {
@@ -324,7 +377,7 @@
             jsonEl.textContent = JSON.stringify(result, null, 2);
         } catch (err) {
             titleEl.textContent = '❌ Error';
-            jsonEl.textContent = err.message + '\n\n(Verifica que el agente esté corriendo)';
+            jsonEl.textContent = err.message;
         }
     }
 
@@ -337,19 +390,10 @@
             document.getElementById('stat-cashback').textContent = '$' + (stats.total_cashback_clp || 0).toLocaleString('es-CL');
             document.getElementById('stat-wallets').textContent = stats.active_wallets || 0;
             document.getElementById('stat-items').textContent = Object.keys(stats.items_recycled || {}).length;
-        } catch (e) { /* silent fail */ }
+        } catch (e) {}
     }
     loadStats();
     setInterval(loadStats, 30000);
-
-    // Device detection for CTA
-    document.querySelectorAll('.hero .btn-primary').forEach(btn => {
-        if (btn.textContent.includes('Probar')) {
-            const isMobile = /Android|iPhone|iPad|iPod|Opera Mini/i.test(navigator.userAgent);
-            btn.href = isMobile ? '#demo' : 'https://food.ecocupon.cl/kiosk';
-            btn.textContent = isMobile ? '📸 Probar reciclaje' : '🖥️ Ver demo kiosk';
-        }
-    });
 </script>
 
 </body>
