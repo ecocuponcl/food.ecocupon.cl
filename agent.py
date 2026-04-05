@@ -52,6 +52,13 @@ OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "")
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 OPENROUTER_MODEL = os.getenv("OPENROUTER_MODEL", "meta-llama/llama-3-70b-instruct")
 
+# LLM Failover (Local Ollama → Cloudflare AI)
+LOCAL_OLLAMA_URL = os.getenv("LOCAL_OLLAMA_URL", "http://192.168.100.8:11434/api/generate")
+CLOUDFLARE_AI_URL = os.getenv("CLOUDFLARE_AI_URL", "https://ecocupon-ai-agent.ecocupon-cl.workers.dev/decide")
+CLOUDFLARE_AI_TOKEN = os.getenv("CLOUDFLARE_AI_TOKEN", "")
+LLM_FAILOVER_TIMEOUT_LOCAL = int(os.getenv("LLM_FAILOVER_TIMEOUT_LOCAL", "2"))
+LLM_FAILOVER_TIMEOUT_CLOUD = int(os.getenv("LLM_FAILOVER_TIMEOUT_CLOUD", "10"))
+
 # API Key auth
 API_KEY = os.getenv("API_KEY", "")
 
@@ -70,6 +77,10 @@ if not N8N_WEBHOOK_URL:
     logger.warning("n8n not configured — events logged only")
 if not OPENROUTER_API_KEY:
     logger.warning("OpenRouter not configured — using rule-based decisions")
+if not LOCAL_OLLAMA_URL:
+    logger.warning("LOCAL_OLLAMA_URL not set — failover to Cloudflare only")
+if not CLOUDFLARE_AI_URL:
+    logger.warning("CLOUDFLARE_AI_URL not set — no cloud failover")
 if not API_KEY:
     logger.warning("API_KEY not set — endpoints are UNPROTECTED")
 
@@ -82,6 +93,67 @@ async def verify_api_key(x_api_key: Optional[str] = Header(None)):
     if x_api_key != API_KEY:
         raise HTTPException(401, "Invalid API key")
     return True
+
+
+# ── LLM Failover ────────────────────────────────────────
+SYSTEM_PROMPT = """Eres EcoCupon AI — asistente de ventas y reciclaje.
+Ayuda a clientes con: 1) Pedidos en kiosco, 2) Reciclaje con cashback, 3) Valuación de vehículos.
+Responde conciso en español (máx 3 oraciones). Cuando un usuario muestre interés en productos o servicios, crea automáticamente un lead."""
+
+
+async def call_llm_failover(prompt: str, data: dict) -> dict:
+    """
+    Intelligent LM failover:
+    1. Try local Ollama (Android) with 2s timeout
+    2. If fails, fallback to Cloudflare AI Worker
+    Returns: {"response": str, "source": "local" | "cloud" | "error"}
+    """
+    # INTENTO 1: Local Ollama (Android)
+    if LOCAL_OLLAMA_URL:
+        try:
+            resp = requests.post(
+                LOCAL_OLLAMA_URL,
+                json={
+                    "model": "llama3:8b",
+                    "prompt": f"{SYSTEM_PROMPT}\n\nUser: {prompt}\nData: {json.dumps(data, ensure_ascii=False)}",
+                    "stream": False,
+                },
+                timeout=LLM_FAILOVER_TIMEOUT_LOCAL,
+            )
+            if resp.status_code == 200:
+                result = resp.json()
+                response_text = result.get("response", "")
+                logger.info(f"LLM response from LOCAL Ollama ({len(response_text)} chars)")
+                return {"response": response_text, "source": "local"}
+        except (requests.ConnectError, requests.Timeout, requests.ConnectionError) as e:
+            logger.warning(f"⚠️ Ollama Local offline ({e}). Saltando a Cloudflare...")
+
+    # INTENTO 2: Cloudflare AI Worker
+    if CLOUDFLARE_AI_URL:
+        try:
+            headers = {"Content-Type": "application/json"}
+            if CLOUDFLARE_AI_TOKEN:
+                headers["X-API-KEY"] = CLOUDFLARE_AI_TOKEN
+
+            resp = requests.post(
+                CLOUDFLARE_AI_URL,
+                json={
+                    "vertical": data.get("vertical", "unknown"),
+                    "data": data.get("data", data),
+                    "system_prompt": SYSTEM_PROMPT,
+                },
+                headers=headers,
+                timeout=LLM_FAILOVER_TIMEOUT_CLOUD,
+            )
+            if resp.status_code == 200:
+                result = resp.json()
+                response_text = result.get("decision", result.get("response", ""))
+                logger.info(f"LLM response from Cloudflare AI ({len(response_text)} chars)")
+                return {"response": response_text, "source": "cloud"}
+        except Exception as e:
+            logger.error(f"Cloudflare AI error: {e}")
+
+    return {"response": "", "source": "error"}
 
 
 # ── Supabase Client ────────────────────────────────────
@@ -563,6 +635,10 @@ def health():
         "llm_configured": bool(OPENROUTER_API_KEY),
         "supabase_configured": bool(SUPABASE_URL and SUPABASE_KEY),
         "n8n_configured": bool(N8N_WEBHOOK_URL),
+        "llm_failover": {
+            "local_ollama": bool(LOCAL_OLLAMA_URL),
+            "cloudflare_ai": bool(CLOUDFLARE_AI_URL),
+        },
     }
 
 
