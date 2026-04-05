@@ -1,0 +1,112 @@
+{
+  "name": "EcoCupon — Reciclaje → WhatsApp + Supabase",
+  "nodes": [
+    {
+      "parameters": { "httpMethod": "POST", "path": "ecocupon-agent", "responseMode": "lastNode" },
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 400]
+    },
+    {
+      "parameters": {
+        "conditions": { "string": [{ "value1": "={{ $json.body.vertical }}", "value2": "RECYCLE" }] }
+      },
+      "name": "Filter RECYCLE",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [460, 400]
+    },
+    {
+      "parameters": {
+        "conditions": { "string": [{ "value1": "={{ $json.body.decision }}", "value2": "approve" }] }
+      },
+      "name": "Check Decision",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [680, 400]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SUPABASE_URL }}/rest/v1/recycle_events",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey", "value": "={{ $env.SUPABASE_KEY }}" },
+            { "name": "Authorization", "value": "Bearer {{ $env.SUPABASE_KEY }}" },
+            { "name": "Content-Type", "value": "application/json" },
+            { "name": "Prefer", "value": "return=minimal" }
+          ]
+        },
+        "body": "={\"event_id\":\"={{ $json.body.metadata.event_id }}\",\"phone\":\"={{ $json.body.metadata.user_phone }}\",\"item\":\"={{ $json.body.scoring.reasoning }}\",\"reward\":{{ $json.body.scoring.value_clp }},\"validation_type\":\"ai\",\"status\":\"approved\"}",
+        "options": {}
+      },
+      "name": "Supabase: Insert Recycle",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [900, 300],
+      "retryOnFail": true,
+      "maxTries": 3
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.WHATSAPP_API_URL }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "Bearer {{ $env.WHATSAPP_TOKEN }}" }
+          ]
+        },
+        "body": "={\"messaging_product\":\"whatsapp\",\"to\":\"={{ $json.body.metadata.user_phone }}\",\"type\":\"template\",\"template\":{\"name\":\"ecocupon_recycle\",\"language\":{\"code\":\"es\"},\"components\":[{\"type\":\"body\",\"parameters\":[{\"type\":\"text\",\"text\":\"{{ $json.body.scoring.value_clp }}\"},{\"type\":\"text\",\"text\":\"{{ $json.body.scoring.reasoning }}\"}]}]}}",
+        "options": {}
+      },
+      "name": "WhatsApp: Cashback",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1120, 300],
+      "retryOnFail": true,
+      "maxTries": 3
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.WHATSAPP_API_URL }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "Bearer {{ $env.WHATSAPP_TOKEN }}" }
+          ]
+        },
+        "body": "={\"messaging_product\":\"whatsapp\",\"to\":\"={{ $json.body.metadata.user_phone }}\",\"type\":\"template\",\"template\":{\"name\":\"ecocupon_rejected\",\"language\":{\"code\":\"es\"},\"components\":[{\"type\":\"body\",\"parameters\":[{\"type\":\"text\",\"text\":\"{{ $json.body.scoring.reasoning }}\"}]}]}}",
+        "options": {}
+      },
+      "name": "WhatsApp: Rejected",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [900, 500],
+      "retryOnFail": true,
+      "maxTries": 3
+    }
+  ],
+  "connections": {
+    "Webhook": { "main": [[{ "node": "Filter RECYCLE", "type": "main", "index": 0 }]] },
+    "Filter RECYCLE": { "main": [[{ "node": "Check Decision", "type": "main", "index": 0 }]] },
+    "Check Decision": {
+      "main": [
+        [{ "node": "Supabase: Insert Recycle", "type": "main", "index": 0 }],
+        [{ "node": "WhatsApp: Rejected", "type": "main", "index": 0 }]
+      ]
+    },
+    "Supabase: Insert Recycle": { "main": [[{ "node": "WhatsApp: Cashback", "type": "main", "index": 0 }]] }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all"
+  },
+  "tags": [{ "name": "ecocupon" }, { "name": "recycle" }, { "name": "whatsapp" }]
+}

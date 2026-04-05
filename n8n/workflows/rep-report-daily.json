@@ -1,0 +1,74 @@
+{
+  "name": "EcoCupon — REP Report Diario",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": { "interval": [{ "field": "cronExpression", "expression": "0 8 * * *" }] }
+      },
+      "name": "Schedule 8AM",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [240, 400]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.SUPABASE_URL }}/rest/v1/recycle_events?select=reward,item,phone&created_at=gt.{{ $now.minus(1, 'day').toISOString() }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey", "value": "={{ $env.SUPABASE_KEY }}" },
+            { "name": "Authorization", "value": "Bearer {{ $env.SUPABASE_KEY }}" }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Supabase: Query Recycles",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [460, 400],
+      "retryOnFail": true,
+      "maxTries": 3
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.all()[0].json;\nconst total = data.length;\nconst cashback = data.reduce((sum, r) => sum + (r.reward || 0), 0);\nconst users = new Set(data.map(r => r.phone)).size;\nconst items = {};\ndata.forEach(r => { items[r.item] = (items[r.item] || 0) + 1; });\nreturn { json: { total_recycles: total, total_cashback: cashback, unique_users: users, items } };"
+      },
+      "name": "Aggregate Stats",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 400]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.WHATSAPP_API_URL }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "Bearer {{ $env.WHATSAPP_TOKEN }}" }
+          ]
+        },
+        "body": "={\"messaging_product\":\"whatsapp\",\"to\":\"={{ $env.ADMIN_PHONE }}\",\"type\":\"template\",\"template\":{\"name\":\"ecocupon_rep_report\",\"language\":{\"code\":\"es\"},\"components\":[{\"type\":\"body\",\"parameters\":[{\"type\":\"text\",\"text\":\"{{ $json.total_recycles }}\"},{\"type\":\"text\",\"text\":\"{{ $json.total_cashback }}\"},{\"type\":\"text\",\"text\":\"{{ $json.unique_users }}\"}]}]}}",
+        "options": {}
+      },
+      "name": "WhatsApp: REP Summary",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [900, 400],
+      "retryOnFail": true,
+      "maxTries": 3
+    }
+  ],
+  "connections": {
+    "Schedule 8AM": { "main": [[{ "node": "Supabase: Query Recycles", "type": "main", "index": 0 }]] },
+    "Supabase: Query Recycles": { "main": [[{ "node": "Aggregate Stats", "type": "main", "index": 0 }]] },
+    "Aggregate Stats": { "main": [[{ "node": "WhatsApp: REP Summary", "type": "main", "index": 0 }]] }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all"
+  },
+  "tags": [{ "name": "ecocupon" }, { "name": "rep" }, { "name": "daily" }]
+}
