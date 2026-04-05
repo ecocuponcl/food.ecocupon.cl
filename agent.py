@@ -626,9 +626,28 @@ def root():
 
 @app.get("/health")
 def health():
+    # Determine active LLM source
+    active_llm = "CLOUDFLARE_AI"  # Default
+    latency_ms = 0
+    
+    # Try local Ollama first
+    if LOCAL_OLLAMA_URL:
+        try:
+            import time
+            start = time.time()
+            resp = requests.post(LOCAL_OLLAMA_URL, json={"model": "llama3:8b", "prompt": "test", "stream": False}, timeout=2)
+            latency_ms = int((time.time() - start) * 1000)
+            if resp.status_code == 200:
+                active_llm = "LOCAL_ANDROID"
+        except:
+            active_llm = "CLOUDFLARE_AI"
+    
     return {
         "status": "ok",
         "service": "ecocupon-agent",
+        "active_llm": active_llm,
+        "latency_ms": latency_ms,
+        "cloud_fallback_ready": bool(CLOUDFLARE_AI_URL),
         "wallets": len(wallets),
         "recycles": len(recycle_events),
         "qr_tokens": len(qr_tokens),
