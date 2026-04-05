@@ -27,7 +27,7 @@ Input (foto/texto) → Agent /decide → n8n ejecuta → Supabase recuerda
 │                    Caddy (HTTPS)                             │
 │  food.ecocupon.cl → Odoo:8069                                │
 │  agent.food.ecocupon.cl → Agent:9000                         │
-│  n8n.smarterbot.cl → n8n:5678                                │
+│  n8n.smarterbot.store → n8n:5678                                │
 └─────────────────────────────────────────────────────────────┘
                               ↓
 ┌─────────────────────────────────────────────────────────────┐
@@ -185,5 +185,5 @@ Install module from Apps
 | Kiosk | `https://food.ecocupon.cl/kiosk` |
 | Agent API | `https://agent.food.ecocupon.cl` |
 | Swagger | `https://agent.food.ecocupon.cl/docs` |
-| n8n | `https://n8n.smarterbot.cl` |
+| n8n | `https://n8n.smarterbot.store` |
 | Admin Odoo | `https://food.ecocupon.cl/web/login` |
