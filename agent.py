@@ -21,7 +21,7 @@ from datetime import datetime, timezone
 from typing import Optional, Literal
 
 import requests
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends, Header
 from pydantic import BaseModel, Field
 from dotenv import load_dotenv
 
@@ -30,12 +30,12 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-app = FastAPI(title="EcoCupon Agent — IA Decision Engine", version="3.0.0")
+app = FastAPI(title="EcoCupon Agent — IA Decision Engine", version="3.1.0")
 
 # ── Config ──────────────────────────────────────────────
 FLOW_API_KEY = os.getenv("FLOW_API_KEY")
 FLOW_SECRET_KEY = os.getenv("FLOW_SECRET_KEY")
-FLOW_BUTTON_TOKEN = os.getenv("FLOW_BUTTON_TOKEN", "zb21aa68cfd8df13c6030369d9946745810db853")
+FLOW_BUTTON_TOKEN = os.getenv("FLOW_BUTTON_TOKEN")
 FLOW_API_URL = os.getenv("FLOW_API_URL", "https://www.flow.cl/api/payment/create")
 CONFIRM_URL = os.getenv("CONFIRM_URL", "https://food.ecocupon.cl/kiosk/payment_webhook")
 RETURN_URL = os.getenv("RETURN_URL", "https://food.ecocupon.cl/kiosk/return")
@@ -52,6 +52,9 @@ OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "")
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 OPENROUTER_MODEL = os.getenv("OPENROUTER_MODEL", "meta-llama/llama-3-70b-instruct")
 
+# API Key auth
+API_KEY = os.getenv("API_KEY", "")
+
 # Anti-fraud limits
 MAX_CASHBACK_PER_DAY = 5000
 MIN_MINUTES_BETWEEN_PURCHASE_AND_RECYCLE = 15
@@ -59,12 +62,26 @@ MAX_RECYCLES_PER_DAY = 10
 
 if not FLOW_API_KEY or not FLOW_SECRET_KEY:
     logger.warning("FLOW credentials not set")
+if not FLOW_BUTTON_TOKEN:
+    logger.warning("FLOW_BUTTON_TOKEN not set — payments will fail")
 if not SUPABASE_URL or not SUPABASE_KEY:
     logger.warning("Supabase not configured — using in-memory store")
 if not N8N_WEBHOOK_URL:
     logger.warning("n8n not configured — events logged only")
 if not OPENROUTER_API_KEY:
     logger.warning("OpenRouter not configured — using rule-based decisions")
+if not API_KEY:
+    logger.warning("API_KEY not set — endpoints are UNPROTECTED")
+
+
+# ── Auth ────────────────────────────────────────────────
+async def verify_api_key(x_api_key: Optional[str] = Header(None)):
+    """Verify API key for protected endpoints."""
+    if not API_KEY:
+        return  # No key configured, skip auth (warning logged at startup)
+    if x_api_key != API_KEY:
+        raise HTTPException(401, "Invalid API key")
+    return True
 
 
 # ── Supabase Client ────────────────────────────────────
@@ -96,7 +113,8 @@ def supabase_get(table: str, params: dict) -> Optional[list]:
     if not SUPABASE_URL or not SUPABASE_KEY:
         return None
     try:
-        query = "&".join(f"{k}={v}" for k, v in params.items())
+        from urllib.parse import urlencode
+        query = urlencode(params)
         resp = requests.get(
             f"{SUPABASE_URL}/rest/v1/{table}?{query}",
             headers={"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"},
@@ -267,7 +285,7 @@ class DecisionResponse(BaseModel):
     event_id: str = ""
 
 
-@app.post("/decide", response_model=DecisionResponse)
+@app.post("/decide", response_model=DecisionResponse, dependencies=[Depends(verify_api_key)])
 def decide(req: DecisionRequest):
     """
     Universal decision endpoint.
@@ -583,7 +601,7 @@ def generate_qr(req: dict):
     }
 
 
-@app.post("/recycle/validate")
+@app.post("/recycle/validate", dependencies=[Depends(verify_api_key)])
 def validate_recycle(req: dict):
     """Validate recycling → cashback."""
     qr_token = req.get("qr_token", "")
@@ -639,7 +657,7 @@ def get_wallet(phone: str):
             "history": wallets[phone]["history"][-20:]}
 
 
-@app.post("/recycle/wallet/{phone}/withdraw")
+@app.post("/recycle/wallet/{phone}/withdraw", dependencies=[Depends(verify_api_key)])
 def withdraw_wallet(phone: str, amount: Optional[int] = None):
     if phone not in wallets:
         raise HTTPException(404, "Wallet no existe")
@@ -671,7 +689,7 @@ def recycle_stats():
 
 
 # ── Vehicle Routes ─────────────────────────────────────
-@app.post("/vehicle/evaluate")
+@app.post("/vehicle/evaluate", dependencies=[Depends(verify_api_key)])
 def evaluate_vehicle(req: dict):
     """Evaluate a vehicle for purchase decision."""
     result = _decide_vehicle(req, None)
@@ -682,7 +700,7 @@ def evaluate_vehicle(req: dict):
 
 
 # ── Fraud Check (standalone) ───────────────────────────
-@app.post("/fraud-check")
+@app.post("/fraud-check", dependencies=[Depends(verify_api_key)])
 def fraud_check(req: dict):
     """Standalone fraud check endpoint."""
     phone = req.get("phone", "")

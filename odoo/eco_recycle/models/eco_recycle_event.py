@@ -27,6 +27,9 @@ class EcoRecycleEvent(models.Model):
     ], default="pending", required=True)
 
     def action_validate(self):
+        """Validate recycle event and credit wallet. State guard prevents duplicates."""
+        if self.state != "pending":
+            return
         self.state = "validated"
         # Credit wallet
         self.env["eco.wallet.transaction"].create({

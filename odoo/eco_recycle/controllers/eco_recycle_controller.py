@@ -37,7 +37,7 @@ class EcoRecycleController(http.Controller):
 
     @http.route("/recycle/submit", type="json", auth="public", csrf=False)
     def recycle_submit(self, **data):
-        """Submit recycling validation."""
+        """Submit recycling validation — respects agent decision."""
         qr_token = data.get("qr_token")
         phone = data.get("phone")
         validation_type = data.get("validation_type", "photo")
@@ -63,7 +63,12 @@ class EcoRecycleController(http.Controller):
         if resp.status_code != 200:
             return {"error": result.get("detail", "Error validando reciclaje")}
 
-        # Log in Odoo
+        # Check agent decision before creating Odoo event
+        decision = result.get("status", "credited")
+        if decision != "credited":
+            return {"error": result.get("message", "Reciclaje rechazado por anti-fraude")}
+
+        # Log in Odoo only if agent approved
         qr_token_obj = request.env["eco.qr.token"].sudo().search([("token", "=", qr_token)], limit=1)
         if qr_token_obj:
             wallet = request.env["eco.wallet"].sudo().search([("phone", "=", phone)], limit=1)

@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_eco_wallet,eco.wallet.user,model_eco_wallet,base.group_user,1,1,1,0
+access_eco_wallet_transaction,eco.wallet.transaction.user,model_eco_wallet_transaction,base.group_user,1,1,1,0
+access_eco_recycle_event,eco.recycle.event.user,model_eco_recycle_event,base.group_user,1,1,1,0
+access_eco_qr_token,eco.qr.token.user,model_eco_qr_token,base.group_user,1,1,1,0

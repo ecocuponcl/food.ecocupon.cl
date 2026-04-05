@@ -11,8 +11,9 @@ EcoCupon Recycle
 - Acredita cashback en wallet del cliente
 - Reportes de cumplimiento REP
     """,
-    "depends": ["sale", "food_kiosk"],
+    "depends": ["sale"],
     "data": [
+        "security/ir.model.access.csv",
         "views/eco_recycle_views.xml",
         "views/eco_recycle_templates.xml",
     ],
