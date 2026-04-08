@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Custom Login Layout — EcoCupon Yellow &amp; Black Branding -->
+    <template id="custom_login_layout" inherit_id="web.login_layout" name="EcoCupon Login Layout">
+        <xpath expr="//div[contains(@class, 'card-body')]" position="before">
+            <div class="ecocupon-branding" style="text-align:center; margin-bottom:20px;">
+                <div style="font-size:48px; margin-bottom:8px;">&#x1F99E;</div>
+                <h2 style="color:#FFD700; font-weight:900; font-size:1.8rem; margin:0; letter-spacing:-0.03em;">SMARTER DUMPER</h2>
+                <p style="color:#888; font-size:0.9rem; margin:4px 0 0;">No solo datos. Movemos toneladas.</p>
+                <div style="border-top:2px solid #FFD700; margin:16px 0;"></div>
+            </div>
+        </xpath>
+        <xpath expr="//div[contains(@class, 'card-body')]" position="after">
+            <div class="ecocupon-footer" style="text-align:center; margin-top:20px; padding-top:16px; border-top:1px solid #333;">
+                <p style="color:#666; font-size:0.75rem; margin:0;">
+                    Powered by <span style="color:#FFD700; font-weight:600;">SmarterOS v6.0</span> · 
+                    <a href="https://bolt.smarterbot.store/" style="color:#FFD700;">Dashboard</a> · 
+                    <a href="https://qr.ecocupon.cl/" style="color:#FFD700;">QR Validator</a>
+                </p>
+            </div>
+        </xpath>
+    </template>
+
+    <!-- Override main login background -->
+    <template id="custom_login_style" inherit_id="web.layout" name="EcoCupon Login Style">
+        <xpath expr="//head" position="inside">
+            <style>
+                /* EcoCupon Yellow and Black Theme */
+                body {
+                    background: #0a0a0a !important;
+                    font-family: 'Inter', -apple-system, sans-serif;
+                }
+                .oe_login_form .card {
+                    background: #1a1a1a !important;
+                    border: 1px solid rgba(255,215,0,0.2) !important;
+                    border-radius: 16px !important;
+                    box-shadow: 0 0 40px rgba(255,215,0,0.1) !important;
+                }
+                .oe_login_form .form-control {
+                    background: #0a0a0a !important;
+                    border: 1px solid rgba(255,215,0,0.2) !important;
+                    color: #FFD700 !important;
+                    border-radius: 8px !important;
+                }
+                .oe_login_form .form-control:focus {
+                    border-color: #FFD700 !important;
+                    box-shadow: 0 0 0 2px rgba(255,215,0,0.2) !important;
+                }
+                .oe_login_form .form-control::placeholder {
+                    color: #666 !important;
+                }
+                .oe_login_form .btn-primary {
+                    background: #FFD700 !important;
+                    color: #000 !important;
+                    border: none !important;
+                    font-weight: 700 !important;
+                    text-transform: uppercase !important;
+                    letter-spacing: 0.05em !important;
+                    border-radius: 8px !important;
+                }
+                .oe_login_form .btn-primary:hover {
+                    background: #FFC107 !important;
+                }
+                .oe_login_form label {
+                    color: #FFD700 !important;
+                    font-weight: 600 !important;
+                }
+                .oe_login_form .form-text {
+                    color: #888 !important;
+                }
+                .o_database_list, .oe_footer {
+                    display: none !important;
+                }
+            </style>
+        </xpath>
+    </template>
+</odoo>

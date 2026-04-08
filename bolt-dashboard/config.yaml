@@ -1,0 +1,32 @@
+database:
+  path: /var/lib/smarter/metrics.db
+  events_log: /var/log/smarter/events.log
+
+# Gateway IP for reaching HOST services from inside container
+host_gateway: "172.19.0.1"
+
+services:
+  - name: "🍔 Odoo Kiosk"
+    url: "http://food-odoo:8069"
+  - name: "🤖 EcoCupon Agent"
+    url: "http://food-agent:9000/health"
+  - name: "⚡ n8n"
+    url: "http://smarter-n8n:5678/healthz"
+  - name: "🐾 PicoClaw"
+    url: "http://{{HOST}}:18792/health"
+  - name: "🧠 AnythingLLM"
+    url: "http://{{HOST}}:3002"
+  - name: "🔌 SmarterOS API"
+    url: "http://{{HOST}}:8000/health"
+  - name: "🌐 Caddy"
+    url: "https://ecocupon.cl"
+  - name: "🐘 PostgreSQL"
+    host: "smarter-postgres"
+    port: 5432
+    type: "tcp"
+  - name: "🔴 Redis"
+    host: "smarter-redis"
+    port: 6379
+    type: "tcp"
+
+refresh_interval: 10

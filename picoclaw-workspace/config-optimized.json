@@ -1,0 +1,129 @@
+{
+    "agents": {
+        "defaults": {
+            "workspace": "~/.picoclaw/workspace",
+            "restrict_to_workspace": true,
+            "model": "openrouter",
+            "max_tokens": 4096,
+            "temperature": 0.3,
+            "max_tool_iterations": 20,
+            "request_timeout": 180,
+            "system_prompt": "Eres EcoCupon AI — asistente autónomo de infraestructura y ventas. Tareas principales: 1) Monitoreo de dominios Cloudflare + Caddy cada 4h, 2) Alertas de SSL/HTTP, 3) Respuestas a clientes por Telegram. Responde conciso en español. Usa scripts en workspace/scripts/ para auditorías. Reporta todo a n8n webhook."
+        }
+    },
+    "model_list": [
+        {
+            "model_name": "openrouter",
+            "model": "openrouter/auto",
+            "api_key": "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",
+            "api_base": "https://openrouter.ai/api/v1",
+            "timeout": 180
+        }
+    ],
+    "channels": {
+        "telegram": {
+            "enabled": true,
+            "token": "8690191913:AAEHOJMxdUj2UBSwrPlpW0jZfMUDwpUNWc",
+            "proxy": "",
+            "allow_from": []
+        },
+        "maixcam": {
+            "enabled": true,
+            "host": "0.0.0.0",
+            "port": 18790,
+            "allow_from": []
+        }
+    },
+    "tools": {
+        "web": {
+            "duckduckgo": {
+                "enabled": true,
+                "max_results": 5
+            }
+        },
+        "exec": {
+            "enabled": true,
+            "allow_from_workspace": true,
+            "allowed_commands": [
+                "bash /root/.picoclaw/workspace/scripts/*.sh",
+                "curl",
+                "openssl",
+                "systemctl status caddy",
+                "caddy validate",
+                "docker ps",
+                "cat /etc/caddy/Caddyfile"
+            ]
+        },
+        "cron": {
+            "enabled": true,
+            "exec_timeout_minutes": 0
+        },
+        "http": {
+            "enabled": true,
+            "allowed_hosts": [
+                "localhost:9001",
+                "localhost:5678",
+                "localhost:8000",
+                "localhost:3001",
+                "agent.food.ecocupon.cl",
+                "n8n.smarterbot.cl",
+                "llm.smarterbot.store",
+                "rjfcmmzjlguiititkmyh.supabase.co",
+                "anythingllm:3001",
+                "api.cloudflare.com"
+            ]
+        },
+        "spawn": {
+            "enabled": true,
+            "max_concurrent": 3,
+            "timeout_minutes": 30
+        }
+    },
+    "cron": {
+        "jobs": [
+            {
+                "id": "caddy-audit-4h",
+                "schedule": "0 */4 * * *",
+                "enabled": true,
+                "mode": "command",
+                "command": "bash /root/.picoclaw/workspace/scripts/caddy-audit.sh",
+                "description": "Audit Caddy config + Cloudflare domains every 4 hours"
+            },
+            {
+                "id": "ssl-check-daily",
+                "schedule": "0 9 * * *",
+                "enabled": true,
+                "mode": "command",
+                "command": "echo | openssl s_client -connect food.ecocupon.cl:443 -servername food.ecocupon.cl 2>/dev/null | openssl x509 -noout -dates",
+                "description": "Daily SSL certificate expiry check for main domains"
+            },
+            {
+                "id": "health-check-30m",
+                "schedule": "*/30 * * * *",
+                "enabled": true,
+                "mode": "agent",
+                "message": "Run health check: curl -s http://localhost:18792/health && curl -s http://agent.food.ecocupon.cl/health && curl -s http://localhost:5678/healthz 2>/dev/null | head -5. Report status to user if any service is down.",
+                "description": "Check all service health every 30 minutes"
+            }
+        ]
+    },
+    "heartbeat": {
+        "enabled": true,
+        "interval": 60,
+        "message": "PicoClaw active. Jobs scheduled: {cron_count}. Workspace: {workspace_path}"
+    },
+    "gateway": {
+        "host": "0.0.0.0",
+        "port": 18792
+    },
+    "hooks": {
+        "on_cron_fail": {
+            "type": "telegram",
+            "message": "⚠️ Cron job '{job_id}' failed: {error}"
+        },
+        "on_startup": {
+            "type": "telegram",
+            "message": "🚀 PicoClaw started. Model: {model}. Skills: {skills_count}. Cron jobs: {cron_count}."
+        }
+    }
+}

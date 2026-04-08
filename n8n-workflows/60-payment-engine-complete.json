@@ -1,0 +1,281 @@
+{
+  "name": "💰 SmarterOS — Motor de Contabilidad y Pagos",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "smarter/payment/checkout",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-checkout",
+      "name": "Webhook Checkout",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [250, 300],
+      "webhookId": "smarter-payment-checkout"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ============================================\n// VALIDAR TENANT Y VERIFICAR PAGO\n// ============================================\n\nconst input = $input.item.json;\nconst tenant = input.tenant_slug || input.tenant;\nconst product = input.product_id;\nconst quantity = input.quantity || 1;\n\n// Verificar si el tenant tiene pago activo\nconst hasPayment = input.payment_confirmed === true || input.api_key_valid === true;\n\nif (!hasPayment) {\n  // Generar orden de pago\n  const orderId = `PAY-${Date.now()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;\n  \n  return {\n    json: {\n      status: \"payment_required\",\n      message: \"Sin pago activo. Generando orden de pago...\",\n      order_id: orderId,\n      tenant: tenant,\n      product: product,\n      quantity: quantity,\n      payment_url: `https://flow.cl/btn.php?token=ORDER_${orderId}`,\n      next_step: \"redirect_to_payment\"\n    }\n  };\n}\n\nreturn {\n  json: {\n    status: \"approved\",\n    message: \"Servicio activo — pago confirmado\",\n    tenant: tenant,\n    product: product,\n    quantity: quantity\n  }\n};"
+      },
+      "id": "validate-payment",
+      "name": "Validar Pago Tenant",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "table": "checkouts",
+        "columns": "tenant_slug,product_id,product_name,quantity,unit_price,total,currency,payment_status,payment_method,source_token,source_channel,session_id,client_ip,fulfilled",
+        "returnFields": "id",
+        "options": {}
+      },
+      "id": "insert-checkout",
+      "name": "Registrar Checkout en DB",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [650, 300],
+      "credentials": {
+        "postgres": {
+          "id": "smarter-postgres",
+          "name": "smarter-postgres"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.status === 'payment_required' ? 'https://api.telegram.org/bot' + $env.TELEGRAM_BOT_TOKEN + '/sendMessage' : '' }}",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "chat_id",
+              "value": "={{ $json.tenant_chat_id || '6683244662' }}"
+            },
+            {
+              "name": "text",
+              "value": "={{ $json.status === 'payment_required' ? '💰 Pago Requerido\\n\\nTenant: ' + $json.tenant + '\\nOrden: ' + $json.order_id + '\\n\\nLink de pago: ' + $json.payment_url : '✅ Servicio Activo\\n\\nTenant: ' + $json.tenant + '\\nProducto: ' + $json.product }}",
+            },
+            {
+              "name": "parse_mode",
+              "value": "Markdown"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "notify-telegram",
+      "name": "Notificar Telegram",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "smarter/payment/confirm",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-payment-confirm",
+      "name": "Webhook Confirmación Pago",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [250, 600],
+      "webhookId": "smarter-payment-confirm"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ============================================\n// PROCESAR CONFIRMACIÓN DE PAGO\n// ============================================\n\nconst payment = $input.item.json;\nconst orderId = payment.order_id || payment.token;\nconst status = payment.status || payment.commerce_status;\n\nif (status === 'completed' || status === 'paid') {\n  return {\n    json: {\n      status: \"payment_confirmed\",\n      order_id: orderId,\n      message: \"✅ Pago confirmado — activando servicio\",\n      action: \"activate_tenant\",\n      tenant: payment.tenant_slug,\n      amount: payment.amount,\n      timestamp: new Date().toISOString()\n    }\n  };\n}\n\nreturn {\n  json: {\n    status: \"payment_pending\",\n    order_id: orderId,\n    message: \"⏳ Pago pendiente\",\n    action: \"wait_for_payment\"\n  }\n};"
+      },
+      "id": "process-payment",
+      "name": "Procesar Confirmación",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [450, 600]
+    },
+    {
+      "parameters": {
+        "jsCode": "// ============================================\n// DTE FACTURACIÓN ELECTRÓNICA\n// ============================================\n\nconst payment = $input.item.json;\n\nif (payment.status === 'payment_confirmed') {\n  const dteData = {\n    tipo_dte: 39, // Boleta electrónica\n    receptor_rut: payment.client_rut || '00000000-0',\n    receptor_nombre: payment.client_name || 'Cliente',\n    items: [{\n      nombre: payment.product || 'Servicio SmarterOS',\n      cantidad: 1,\n      precio_unitario: payment.amount || 0\n    }],\n    total: payment.amount\n  };\n  \n  return {\n    json: {\n      action: \"generate_dte\",\n      dte: dteData,\n      webhook_url: \"https://libredte.cl/api/v1/boletas\"\n    }\n  };\n}\n\nreturn { json: { action: \"skip_dte\" } };"
+      },
+      "id": "generate-dte",
+      "name": "Generar DTE (Boleta)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [650, 600]
+    },
+    {
+      "parameters": {
+        "jsCode": "// ============================================\n// ACTUALIZAR MÉTRICAS DE FUNNEL\n// ============================================\n\nconst checkout = $input.item.json;\nconst tenant = checkout.tenant_slug || checkout.tenant;\n\nreturn {\n  json: {\n    action: \"update_funnel_metrics\",\n    tenant_slug: tenant,\n    date: new Date().toISOString().split('T')[0],\n    checkouts_completed: 1,\n    revenue_total: checkout.amount || 0,\n    currency: checkout.currency || 'CLP'\n  }\n};"
+      },
+      "id": "update-funnel",
+      "name": "Actualizar Métricas Funnel",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [850, 600]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE smarter_rule_log SET executed_at = NOW(), result = $1 WHERE rule_id = 39",
+        "options": {}
+      },
+      "id": "log-rule-39",
+      "name": "Log RULE_39 Billing Alert",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [1050, 600],
+      "credentials": {
+        "postgres": {
+          "id": "smarter-postgres",
+          "name": "smarter-postgres"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {}
+      },
+      "id": "respond-ok",
+      "name": "Responder OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1050, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {}
+      },
+      "id": "respond-confirm",
+      "name": "Responder Confirmación",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1250, 600]
+    }
+  ],
+  "connections": {
+    "Webhook Checkout": {
+      "main": [
+        [
+          {
+            "node": "Validar Pago Tenant",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar Pago Tenant": {
+      "main": [
+        [
+          {
+            "node": "Registrar Checkout en DB",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar Checkout en DB": {
+      "main": [
+        [
+          {
+            "node": "Notificar Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notificar Telegram": {
+      "main": [
+        [
+          {
+            "node": "Responder OK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook Confirmación Pago": {
+      "main": [
+        [
+          {
+            "node": "Procesar Confirmación",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Procesar Confirmación": {
+      "main": [
+        [
+          {
+            "node": "Generar DTE (Boleta)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generar DTE (Boleta)": {
+      "main": [
+        [
+          {
+            "node": "Actualizar Métricas Funnel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Actualizar Métricas Funnel": {
+      "main": [
+        [
+          {
+            "node": "Log RULE_39 Billing Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log RULE_39 Billing Alert": {
+      "main": [
+        [
+          {
+            "node": "Responder Confirmación",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "name": "smarteros",
+      "color": "blue"
+    },
+    {
+      "name": "billing",
+      "color": "green"
+    }
+  ],
+  "triggerCount": 2,
+  "updatedAt": "2026-04-07T12:40:00.000Z",
+  "versionId": "1.0.0"
+}

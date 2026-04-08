@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Override web layout for branding -->
+    <template id="custom_web_layout" inherit_id="web.layout" name="EcoCupon Web Layout">
+        <xpath expr="//title" position="replace">
+            <title>EcoCupon — Smarter Dumper</title>
+        </xpath>
+        <xpath expr="//link[@rel='shortcut icon']" position="replace">
+            <link rel="shortcut icon" href="/ecocupon_login/static/src/img/favicon.ico" type="image/x-icon"/>
+        </xpath>
+    </template>
+
+    <!-- Override login form branding -->
+    <template id="custom_login" inherit_id="web.login" name="EcoCupon Login Form">
+        <xpath expr="//form" position="attributes">
+            <attribute name="style">max-width:400px; margin:0 auto;</attribute>
+        </xpath>
+    </template>
+</odoo>

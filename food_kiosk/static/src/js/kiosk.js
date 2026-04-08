@@ -190,4 +190,169 @@ odoo.define('food_kiosk.kiosk', function (require) {
             }
         });
     };
+
+    // ── QR Scanner ─────────────────────────────────────
+    var html5QrcodeScanner;
+
+    window.openQRScanner = function () {
+        var container = document.getElementById('qr-scanner-container');
+        if (container) {
+            container.style.display = 'block';
+            initQRScanner();
+        }
+    };
+
+    window.closeQRScanner = function () {
+        var container = document.getElementById('qr-scanner-container');
+        if (container) {
+            container.style.display = 'none';
+        }
+        if (html5QrcodeScanner) {
+            html5QrcodeScanner.stop().catch(function (err) {
+                console.error('QR stop error:', err);
+            });
+            html5QrcodeScanner = null;
+        }
+    };
+
+    function initQRScanner() {
+        if (typeof Html5Qrcode === 'undefined') {
+            console.error('html5-qrcode library not loaded');
+            return;
+        }
+
+        // Clean up any previous instance
+        if (html5QrcodeScanner) {
+            html5QrcodeScanner.stop().catch(function () {});
+        }
+
+        html5QrcodeScanner = new Html5Qrcode("qr-reader");
+
+        var config = {
+            fps: 10,
+            qrbox: { width: 250, height: 250 },
+            aspectRatio: 1.0
+        };
+
+        html5QrcodeScanner.start(
+            { facingMode: "environment" },
+            config,
+            onQRCodeSuccess,
+            onQRCodeError
+        ).catch(function (err) {
+            console.error("QR init error:", err);
+        });
+    }
+
+    function onQRCodeSuccess(decodedText) {
+        // Pause scanner to prevent double scans
+        if (html5QrcodeScanner) {
+            html5QrcodeScanner.pause();
+        }
+
+        // Validate QR with backend
+        fetch('/recycle/validate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ qr_code: decodedText })
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (result) {
+            if (result.valid) {
+                // Add to cart as recyclable item with cashback
+                addToCart({
+                    name: result.material + ' (' + result.weight + 'kg)',
+                    price: -result.cashback,
+                    cashback: result.cashback,
+                    material: result.material,
+                    weight: result.weight,
+                    isRecycle: true
+                });
+
+                // Visual feedback
+                showNotification('✅ ' + result.material + ' — $' + result.cashback.toLocaleString('es-CL') + ' CLP acreditado');
+
+                // Close scanner after short delay
+                setTimeout(function () {
+                    closeQRScanner();
+                }, 1500);
+            } else {
+                showNotification('❌ QR inválido: ' + (result.message || result.error || 'Error desconocido'));
+                // Resume scanner
+                if (html5QrcodeScanner) {
+                    html5QrcodeScanner.resume().catch(function () {});
+                }
+            }
+        })
+        .catch(function (err) {
+            console.error('QR validation error:', err);
+            showNotification('❌ Error de conexión al validar QR');
+            if (html5QrcodeScanner) {
+                html5QrcodeScanner.resume().catch(function () {});
+            }
+        });
+    }
+
+    function onQRCodeError(error) {
+        // Silent fail - user will scan again
+        if (error) {
+            console.debug('QR scan error:', error);
+        }
+    }
+
+    function showNotification(message) {
+        // Remove existing notification
+        var existing = document.querySelector('.kiosk-notification');
+        if (existing) existing.remove();
+
+        var notif = document.createElement('div');
+        notif.className = 'kiosk-notification';
+        notif.textContent = message;
+        notif.style.cssText = 'position:fixed; top:20px; left:50%; transform:translateX(-50%); ' +
+            'background:#00c853; color:#1a1a2e; padding:16px 24px; border-radius:12px; ' +
+            'font-size:16px; font-weight:bold; z-index:10001; box-shadow:0 4px 20px rgba(0,200,83,0.4); ' +
+            'max-width:90vw; text-align:center;';
+        document.body.appendChild(notif);
+
+        setTimeout(function () {
+            notif.style.opacity = '0';
+            notif.style.transition = 'opacity 0.5s';
+            setTimeout(function () {
+                notif.remove();
+            }, 500);
+        }, 3000);
+    }
+
+    // Override addToCart to handle QR recycle items
+    var _originalAddToCart = window.addToCart;
+    window.addToCart = function (cardEl) {
+        // Support programmatic calls with object (from QR scanner)
+        if (typeof cardEl !== 'object' || cardEl instanceof HTMLElement === false) {
+            if (typeof cardEl === 'object' && cardEl.isRecycle) {
+                // It's a recycle item from QR scanner
+                var existing = cart.items.find(function (item) {
+                    return item.isRecycle && item.material === cardEl.material;
+                });
+                if (existing) {
+                    existing.qty += 1;
+                } else {
+                    cart.items.push({
+                        productId: 0,
+                        name: cardEl.name,
+                        price: cardEl.price,
+                        qty: 1,
+                        isRecycle: true,
+                        material: cardEl.material,
+                        weight: cardEl.weight,
+                        cashback: cardEl.cashback,
+                    });
+                }
+                updateCartCount();
+                showNotification('♻️ ' + cardEl.name + ' agregado');
+                return;
+            }
+        }
+        // Call original for product cards
+        _originalAddToCart(cardEl);
+    };
 });

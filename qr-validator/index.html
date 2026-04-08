@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoCupon QR Validator — Escaneá. Validá. Cobrá.</title>
+    <meta name="description" content="Validador QR EcoCupon. Escaneá el código, validá el material y acreditá el cashback al instante.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --yellow: #FFD700;
+            --black: #000000;
+            --dark: #0a0a0a;
+            --gray: #1a1a1a;
+            --green: #4CAF50;
+            --red: #ff4444;
+        }
+        body { font-family: 'Inter', -apple-system, sans-serif; background: var(--black); color: #fff; min-height: 100vh; }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+
+        /* ── NAV ─────────────────────────────────────── */
+        nav { background: rgba(0,0,0,0.95); backdrop-filter: blur(20px); padding: 16px 0; border-bottom: 1px solid rgba(255,215,0,0.1); position: sticky; top: 0; z-index: 100; }
+        nav .container { max-width: 800px; margin: 0 auto; padding: 0 20px; display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 1.2rem; font-weight: 900; color: var(--yellow); text-decoration: none; letter-spacing: -0.03em; }
+        .logo span { color: #fff; }
+        .nav-links { display: flex; gap: 16px; }
+        .nav-links a { color: #888; text-decoration: none; font-size: 0.85rem; font-weight: 500; }
+        .nav-links a:hover { color: var(--yellow); }
+
+        /* ── HERO ────────────────────────────────────── */
+        .hero { text-align: center; padding: 60px 20px 40px; }
+        .hero h1 { font-size: clamp(1.8rem, 5vw, 2.5rem); font-weight: 900; margin-bottom: 8px; }
+        .hero h1 .accent { color: var(--yellow); }
+        .hero p { color: #888; font-size: 1rem; max-width: 500px; margin: 0 auto; }
+
+        /* ── SCANNER ─────────────────────────────────── */
+        .scanner { max-width: 600px; margin: 0 auto; padding: 0 20px 40px; }
+        .scan-box { background: var(--gray); border: 2px solid rgba(255,215,0,0.2); border-radius: 16px; padding: 30px; text-align: center; margin-bottom: 20px; }
+        .scan-box.active { border-color: var(--yellow); box-shadow: 0 0 30px rgba(255,215,0,0.1); }
+        .scan-icon { font-size: 4rem; margin-bottom: 16px; }
+        .scan-btn { background: var(--yellow); color: #000; border: none; padding: 16px 40px; border-radius: 50px; font-size: 1.1rem; font-weight: 700; cursor: pointer; transition: all 0.3s; text-transform: uppercase; letter-spacing: 0.05em; }
+        .scan-btn:hover { background: #FFC107; transform: scale(1.05); }
+        .scan-btn:active { transform: scale(0.95); }
+        .manual-input { display: flex; gap: 10px; margin-top: 20px; }
+        .manual-input input { flex: 1; background: #0a0a0a; border: 1px solid rgba(255,215,0,0.2); color: #fff; padding: 14px 20px; border-radius: 12px; font-size: 1rem; font-family: 'JetBrains Mono', monospace; }
+        .manual-input input:focus { outline: none; border-color: var(--yellow); }
+        .manual-input button { background: var(--yellow); color: #000; border: none; padding: 14px 24px; border-radius: 12px; font-weight: 700; cursor: pointer; }
+
+        /* ── RESULT ──────────────────────────────────── */
+        .result { max-width: 600px; margin: 0 auto; padding: 0 20px 40px; display: none; }
+        .result.show { display: block; }
+        .result-card { background: var(--gray); border-radius: 16px; padding: 30px; border: 1px solid rgba(255,215,0,0.1); }
+        .result-card.success { border-color: var(--green); }
+        .result-card.error { border-color: var(--red); }
+        .result-header { text-align: center; margin-bottom: 24px; }
+        .result-icon { font-size: 3rem; margin-bottom: 8px; }
+        .result-status { font-size: 1.2rem; font-weight: 700; }
+        .result-details { display: grid; gap: 12px; }
+        .result-row { display: flex; justify-content: space-between; padding: 12px 16px; background: #0a0a0a; border-radius: 8px; }
+        .result-row .label { color: #888; font-size: 0.85rem; }
+        .result-row .value { color: #fff; font-weight: 600; font-family: 'JetBrains Mono', monospace; }
+        .result-row .value.green { color: var(--green); }
+        .result-row .value.yellow { color: var(--yellow); }
+        .result-actions { display: flex; gap: 10px; margin-top: 20px; }
+        .result-actions button { flex: 1; padding: 14px; border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 0.9rem; text-transform: uppercase; }
+        .btn-accept { background: var(--green); color: #fff; border: none; }
+        .btn-reject { background: transparent; color: var(--red); border: 1px solid var(--red); }
+
+        /* ── HISTORY ─────────────────────────────────── */
+        .history { max-width: 600px; margin: 0 auto; padding: 0 20px 60px; }
+        .history h3 { font-size: 1rem; color: #888; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.1em; }
+        .history-list { display: grid; gap: 8px; }
+        .history-item { background: var(--gray); border-radius: 10px; padding: 16px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.05); }
+        .history-item .info { flex: 1; }
+        .history-item .material { font-weight: 600; color: #fff; }
+        .history-item .time { font-size: 0.8rem; color: #666; font-family: 'JetBrains Mono', monospace; }
+        .history-item .amount { color: var(--yellow); font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+
+        /* ── FOOTER ──────────────────────────────────── */
+        footer { text-align: center; padding: 30px 20px; border-top: 1px solid rgba(255,215,0,0.1); color: #666; font-size: 0.8rem; }
+        footer a { color: var(--yellow); text-decoration: none; }
+
+        /* ── ANIMATIONS ──────────────────────────────── */
+        @keyframes scan {
+            0%, 100% { transform: scaleY(1); opacity: 0.5; }
+            50% { transform: scaleY(1.2); opacity: 1; }
+        }
+        .scanning .scan-icon { animation: scan 1s ease-in-out infinite; }
+
+        /* ── RESPONSIVE ──────────────────────────────── */
+        @media (max-width: 480px) {
+            .hero h1 { font-size: 1.5rem; }
+            .scan-box { padding: 20px; }
+            .manual-input { flex-direction: column; }
+            .result-actions { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ── NAV ──────────────────────────────────────────── -->
+<nav>
+    <div class="container">
+        <a href="/" class="logo">ECOCOUPON <span>QR</span></a>
+        <div class="nav-links">
+            <a href="https://food.ecocupon.cl/">🍔 Food Kiosk</a>
+            <a href="https://bolt.smarterbot.store/">📊 Dashboard</a>
+        </div>
+    </div>
+</nav>
+
+<!-- ── HERO ─────────────────────────────────────────── -->
+<section class="hero">
+    <h1>Validador <span class="accent">QR</span></h1>
+    <p>Escaneá el código, validá el material y acreditá el cashback al instante.</p>
+</section>
+
+<!-- ── SCANNER ──────────────────────────────────────── -->
+<section class="scanner">
+    <div class="scan-box" id="scanBox">
+        <div class="scan-icon">📱</div>
+        <button class="scan-btn" id="scanBtn" onclick="startScan()">Escanear QR</button>
+        <div class="manual-input">
+            <input type="text" id="qrInput" placeholder="O ingresá el código QR manualmente..." maxlength="32">
+            <button onclick="validateManual()">Validar</button>
+        </div>
+    </div>
+</section>
+
+<!-- ── RESULT ───────────────────────────────────────── -->
+<section class="result" id="resultSection">
+    <div class="result-card" id="resultCard">
+        <div class="result-header">
+            <div class="result-icon" id="resultIcon">✅</div>
+            <div class="result-status" id="resultStatus">QR Válido</div>
+        </div>
+        <div class="result-details" id="resultDetails">
+            <!-- Dynamic content -->
+        </div>
+        <div class="result-actions" id="resultActions">
+            <button class="btn-accept" onclick="acceptValidation()">✅ Aceptar</button>
+            <button class="btn-reject" onclick="rejectValidation()">❌ Rechazar</button>
+        </div>
+    </div>
+</section>
+
+<!-- ── HISTORY ──────────────────────────────────────── -->
+<section class="history" id="historySection" style="display:none;">
+    <h3>Últimas Validaciones</h3>
+    <div class="history-list" id="historyList">
+        <!-- Dynamic content -->
+    </div>
+</section>
+
+<!-- ── FOOTER ───────────────────────────────────────── -->
+<footer>
+    <p>🦞 EcoCupon QR Validator · <a href="https://food.ecocupon.cl/">Food Kiosk</a> · <a href="https://bolt.smarterbot.store/">Bolt Dashboard</a></p>
+    <p style="margin-top:8px;">Powered by <a href="https://ecocupon.cl">Smarter Dumper</a> · SmarterOS v6.0</p>
+</footer>
+
+<script>
+    const API_BASE = '/api';
+    const BOLT_API = 'https://bolt.smarterbot.store';
+    let scanHistory = [];
+    let currentValidation = null;
+
+    // ── Scan QR using device camera ──────────────────
+    async function startScan() {
+        const scanBox = document.getElementById('scanBox');
+        const scanBtn = document.getElementById('scanBtn');
+        
+        // Try using native QR scanner if available
+        if ('BarcodeDetector' in window) {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+                const video = document.createElement('video');
+                video.srcObject = stream;
+                video.play();
+                
+                const detector = new BarcodeDetector({ formats: ['qr_code'] });
+                scanBox.classList.add('scanning');
+                scanBtn.textContent = 'Apuntá al QR...';
+                
+                const scanFrame = async () => {
+                    const barcodes = await detector.detect(video);
+                    if (barcodes.length > 0) {
+                        const code = barcodes[0].rawValue;
+                        stream.getTracks().forEach(t => t.stop());
+                        scanBox.classList.remove('scanning');
+                        validateQR(code);
+                        return;
+                    }
+                    requestAnimationFrame(scanFrame);
+                };
+                scanFrame();
+            } catch(e) {
+                // Fallback to manual input
+                document.getElementById('qrInput').focus();
+            }
+        } else {
+            // No native QR support - focus manual input
+            document.getElementById('qrInput').focus();
+        }
+    }
+
+    // ── Manual validation ────────────────────────────
+    function validateManual() {
+        const code = document.getElementById('qrInput').value.trim();
+        if (!code) return;
+        validateQR(code);
+    }
+
+    // ── Validate QR code ─────────────────────────────
+    async function validateQR(code) {
+        const scanBox = document.getElementById('scanBox');
+        scanBox.classList.add('active');
+        
+        try {
+            // Try BOLT API first, fallback to local
+            let response;
+            try {
+                response = await fetch(`${BOLT_API}/api/qr/validate`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ qr_code: code, channel: 'qr_validator' })
+                });
+            } catch(e) {
+                // Fallback to local ecocupon API
+                response = await fetch(`${API_BASE}/validate`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ qr_code: code })
+                });
+            }
+            
+            const data = await response.json();
+            
+            if (data.valid || data.status === 'ok') {
+                showResult('success', data);
+            } else {
+                showResult('error', data);
+            }
+        } catch(e) {
+            showResult('error', { error: 'Error de conexión', message: 'No se pudo validar el QR. Intentá de nuevo.' });
+        }
+        
+        scanBox.classList.remove('active');
+    }
+
+    // ── Show result ──────────────────────────────────
+    function showResult(type, data) {
+        const section = document.getElementById('resultSection');
+        const card = document.getElementById('resultCard');
+        const icon = document.getElementById('resultIcon');
+        const status = document.getElementById('resultStatus');
+        const details = document.getElementById('resultDetails');
+        const actions = document.getElementById('resultActions');
+        
+        section.classList.add('show');
+        card.className = 'result-card ' + type;
+        
+        if (type === 'success') {
+            icon.textContent = '✅';
+            status.textContent = 'QR Válido — ' + (data.material || 'Material detectado');
+            status.style.color = '#4CAF50';
+            details.innerHTML = `
+                <div class="result-row"><span class="label">Material</span><span class="value">${data.material || 'N/A'}</span></div>
+                <div class="result-row"><span class="label">Peso</span><span class="value">${data.weight ? data.weight + ' kg' : 'N/A'}</span></div>
+                <div class="result-row"><span class="label">Cashback</span><span class="value yellow">$${(data.cashback || 0).toLocaleString()} CLP</span></div>
+                <div class="result-row"><span class="label">Tenant</span><span class="value">${data.tenant || 'ecocupon_cl'}</span></div>
+                <div class="result-row"><span class="label">QR Code</span><span class="value mono">${data.qr_code || data.token || 'N/A'}</span></div>
+            `;
+            currentValidation = data;
+        } else {
+            icon.textContent = '❌';
+            status.textContent = data.error || 'QR Inválido';
+            status.style.color = '#ff4444';
+            details.innerHTML = `
+                <div class="result-row"><span class="label">Error</span><span class="value" style="color:#ff4444">${data.message || data.error || 'Código no reconocido'}</span></div>
+                <div class="result-row"><span class="label">QR Code</span><span class="value mono">${currentValidation?.qr_code || 'N/A'}</span></div>
+            `;
+            currentValidation = null;
+        }
+        
+        // Scroll to result
+        section.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // ── Accept validation ────────────────────────────
+    async function acceptValidation() {
+        if (!currentValidation) return;
+        
+        try {
+            await fetch(`${BOLT_API}/api/qr/confirm`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    qr_code: currentValidation.qr_code || currentValidation.token,
+                    action: 'accept',
+                    confirmed_at: new Date().toISOString()
+                })
+            });
+            
+            // Add to history
+            addToHistory(currentValidation, 'accepted');
+            
+            // Reset UI
+            document.getElementById('resultSection').classList.remove('show');
+            document.getElementById('qrInput').value = '';
+            currentValidation = null;
+            
+            // Play success sound
+            if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+            
+        } catch(e) {
+            alert('Error al confirmar. Intentá de nuevo.');
+        }
+    }
+
+    // ── Reject validation ────────────────────────────
+    async function rejectValidation() {
+        if (!currentValidation) return;
+        
+        try {
+            await fetch(`${BOLT_API}/api/qr/confirm`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    qr_code: currentValidation.qr_code || currentValidation.token,
+                    action: 'reject',
+                    rejected_at: new Date().toISOString()
+                })
+            });
+            
+            addToHistory(currentValidation, 'rejected');
+            document.getElementById('resultSection').classList.remove('show');
+            document.getElementById('qrInput').value = '';
+            currentValidation = null;
+        } catch(e) {
+            alert('Error al rechazar. Intentá de nuevo.');
+        }
+    }
+
+    // ── Add to history ───────────────────────────────
+    function addToHistory(data, action) {
+        scanHistory.unshift({
+            material: data.material || 'N/A',
+            cashback: data.cashback || 0,
+            time: new Date().toLocaleTimeString('es-CL'),
+            action: action
+        });
+        
+        // Keep last 10
+        scanHistory = scanHistory.slice(0, 10);
+        renderHistory();
+    }
+
+    // ── Render history ───────────────────────────────
+    function renderHistory() {
+        const section = document.getElementById('historySection');
+        const list = document.getElementById('historyList');
+        
+        if (scanHistory.length === 0) {
+            section.style.display = 'none';
+            return;
+        }
+        
+        section.style.display = 'block';
+        list.innerHTML = scanHistory.map(h => `
+            <div class="history-item">
+                <div class="info">
+                    <div class="material">${h.material}</div>
+                    <div class="time">${h.time} · ${h.action === 'accepted' ? '✅' : '❌'}</div>
+                </div>
+                <div class="amount">$${h.cashback.toLocaleString()}</div>
+            </div>
+        `).join('');
+    }
+
+    // ── Enter key support ────────────────────────────
+    document.getElementById('qrInput').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') validateManual();
+    });
+</script>
+
+</body>
+</html>

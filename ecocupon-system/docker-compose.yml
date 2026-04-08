@@ -1,0 +1,52 @@
+services:
+  api:
+    build: ./api
+    container_name: ecocupon-api
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:9003:9002"
+    environment:
+      DB_HOST: ecocupon-db
+      DB_PORT: 5432
+      DB_NAME: ecocupon
+      DB_USER: ecocupon
+      DB_PASS: ecocupon_secure_2026
+      ECOCOUPON_JWT_SECRET: ecocupon_jwt_secret_2026
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - ecocupon-net
+    healthcheck:
+      test: ["CMD", "python3", "healthcheck.py"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  db:
+    image: postgres:16-alpine
+    container_name: ecocupon-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ecocupon
+      POSTGRES_PASSWORD: ecocupon_secure_2026
+      POSTGRES_DB: ecocupon
+    volumes:
+      - ecocupon_db_data:/var/lib/postgresql/data
+      - ./migrations:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ecocupon"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ecocupon-net
+
+volumes:
+  ecocupon_db_data:
+
+networks:
+  ecocupon-net:
+    name: ecocupon-net
+    driver: bridge

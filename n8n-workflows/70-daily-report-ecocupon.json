@@ -1,0 +1,112 @@
+{
+  "name": "📊 Daily Report — EcoCupon Smarter Dumper",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 9 * * *"
+            }
+          ]
+        }
+      },
+      "id": "schedule-daily",
+      "name": "Daily 9AM Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n  (SELECT COUNT(*) FROM qr_tokens WHERE created_at >= NOW() - INTERVAL '24 hours') as qr_scanned_today,\n  (SELECT COUNT(*) FROM smarter_rule_log WHERE executed_at >= NOW() - INTERVAL '24 hours') as validations_today,\n  (SELECT COALESCE(SUM(quantity), 0) FROM inventory WHERE tenant_slug = 'ecocupon_cl') as total_inventory,\n  (SELECT COUNT(*) FROM funnel_metrics WHERE date = CURRENT_DATE) as checkouts_today",
+        "options": {}
+      },
+      "id": "query-stats",
+      "name": "Get Daily Stats",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [450, 300],
+      "credentials": {
+        "postgres": {
+          "id": "smarter-postgres",
+          "name": "smarter-postgres"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const stats = $input.item.json;\nconst today = new Date().toLocaleDateString('es-CL', {weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'});\n\nconst message = `🦞 *REPORTE DIARIO — Smarter Dumper*\\n\\n📅 ${today}\\n\\n📊 *Métricas del Día:*\\n• QR escaneados: ${stats.qr_scanned_today || 0}\\n• Validaciones: ${stats.validations_today || 0}\\n• Checkouts: ${stats.checkouts_today || 0}\\n• Inventario total: ${stats.total_inventory?.toLocaleString() || 0} unidades\\n\\n *Tenants Activos:*\\n• 🇨🇱 EcoCupon Chile — ecocupon_cl\\n• 🇲🇽 EcoCupon Mendoza — ecocupon_mza\\n• 🍔 Food Kiosk — food_kiosk\\n\\n🔗 *Links:*\\n• Dashboard: https://bolt.smarterbot.store/\\n• QR Validator: https://qr.ecocupon.cl/\\n• Food Kiosk: https://food.ecocupon.cl/\\n\\n_Powered by SmarterOS v6.0_`;\n\nreturn { json: { message, today } };"
+      },
+      "id": "format-report",
+      "name": "Format Report Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "operation": "sendMessage",
+        "chatId": "={{ $env.TELEGRAM_CHAT_ID || '6683244662' }}",
+        "text": "={{ $json.message }}",
+        "parseMode": "Markdown",
+        "options": {}
+      },
+      "id": "send-telegram",
+      "name": "Send to Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [850, 300],
+      "credentials": {
+        "telegramApi": {
+          "id": "smarter-telegram",
+          "name": "SmarterOS Telegram Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "table": "smarter_rule_log",
+        "columns": "rule_id,executed_at,result",
+        "options": {}
+      },
+      "id": "log-report",
+      "name": "Log Report Execution",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [850, 500],
+      "credentials": {
+        "postgres": {
+          "id": "smarter-postgres",
+          "name": "smarter-postgres"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Daily 9AM Trigger": {
+      "main": [[{"node": "Get Daily Stats", "type": "main", "index": 0}]]
+    },
+    "Get Daily Stats": {
+      "main": [[{"node": "Format Report Message", "type": "main", "index": 0}]]
+    },
+    "Format Report Message": {
+      "main": [
+        [{"node": "Send to Telegram", "type": "main", "index": 0}],
+        [{"node": "Log Report Execution", "type": "main", "index": 0}]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/Santiago"
+  },
+  "tags": [
+    {"name": "smarteros", "color": "blue"},
+    {"name": "daily-report", "color": "green"},
+    {"name": "ecocupon", "color": "yellow"}
+  ]
+}

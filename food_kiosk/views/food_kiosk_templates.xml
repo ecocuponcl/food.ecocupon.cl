@@ -16,8 +16,15 @@
             </t>
             <t t-set="head">
                 <link rel="stylesheet" href="/food_kiosk/static/src/css/kiosk.css"/>
+                <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
             </t>
             <body class="kiosk-body">
+
+                <!-- QR Scanner Overlay -->
+                <div id="qr-scanner-container" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:9999;">
+                    <button onclick="closeQRScanner()" style="position:absolute; top:20px; right:20px; z-index:10000; background:#fff; border:none; padding:10px 20px; border-radius:8px; font-size:18px; cursor:pointer;">&#10005; Cerrar</button>
+                    <div id="qr-reader" style="max-width:500px; margin:100px auto;"></div>
+                </div>
 
                 <!-- 1. CUPÓN BANNER -->
                 <div class="kiosk-coupon-banner">
@@ -80,6 +87,9 @@
                         <div class="kiosk-cart-total">
                             Total: <strong id="cartTotal">$0</strong>
                         </div>
+                        <button class="kiosk-btn-scan-qr" onclick="openQRScanner()" style="width:100%; padding:12px; margin-bottom:8px; background:linear-gradient(135deg, #00c853, #00e676); border:none; border-radius:8px; color:#1a1a2e; font-size:16px; font-weight:bold; cursor:pointer;">
+                            📷 Escanear QR de Envase
+                        </button>
                         <button class="kiosk-btn-pay" onclick="payOrder()">
                             💳 Pagar Ahora
                         </button>
@@ -99,6 +109,7 @@
             <t t-set="head">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
                 <link rel="stylesheet" href="/food_kiosk/static/src/css/kiosk.css"/>
+                <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
             </t>
             <body class="kiosk-body">
                 <div class="kiosk-return-container">
@@ -112,6 +123,41 @@
                             </t>
                             <p class="kiosk-wait-msg">Tu pedido está siendo preparado 🍳</p>
                         </div>
+
+                        <!-- QR Code Display Section -->
+                        <t t-if="qr_codes">
+                            <div class="qr-display" style="margin-top:30px; text-align:center;">
+                                <h2 style="color:#00e676;">🎉 Tu reciclaje fue acreditado</h2>
+                                <p style="color:#aaa; margin-bottom:20px;">Guarda estos QR para tus próximos retiros</p>
+                                <div class="qr-grid" style="display:flex; flex-wrap:wrap; gap:20px; justify-content:center;">
+                                    <t t-foreach="qr_codes" t-as="qr">
+                                        <div class="qr-card" style="background:#16213e; border-radius:12px; padding:20px; text-align:center; min-width:180px;">
+                                            <div t-attf-id="qr-{{qr['token']}}" style="display:inline-block; background:#fff; padding:10px; border-radius:8px; margin-bottom:10px;"></div>
+                                            <p style="color:#fff; margin:8px 0 4px; font-size:14px;"><t t-esc="qr.get('item', '')"/></p>
+                                            <p style="color:#00e676; font-weight:bold; font-size:16px;">$<t t-esc="qr.get('reward', 0)"/> CLP</p>
+                                        </div>
+                                    </t>
+                                </div>
+                            </div>
+                            <script type="text/javascript">
+                                <![CDATA[
+                                document.addEventListener('DOMContentLoaded', function() {
+                                    if (typeof QRCode !== 'undefined') {
+                                        document.querySelectorAll('[id^="qr-"]').forEach(function(el) {
+                                            var token = el.id.replace('qr-', '');
+                                            new QRCode(el, {
+                                                text: token,
+                                                width: 128,
+                                                height: 128,
+                                                colorDark: "#1a1a2e",
+                                                colorLight: "#ffffff",
+                                            });
+                                        });
+                                    }
+                                });
+                                ]]>
+                            </script>
+                        </t>
                     </t>
                     <t t-else="">
                         <div class="kiosk-pending">

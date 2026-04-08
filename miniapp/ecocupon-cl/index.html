@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoCupon — Reciclaje con Cashback</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Courier New', monospace;
+            background: #000;
+            color: #FFD700;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            max-width: 400px;
+            width: 100%;
+            padding: 20px;
+            text-align: center;
+        }
+        .logo {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+        h1 {
+            font-size: 24px;
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+        .tagline {
+            font-size: 14px;
+            color: #888;
+            margin-bottom: 30px;
+        }
+        .product-card {
+            background: #1a1a1a;
+            border: 1px solid #FFD700;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            position: relative;
+            overflow: hidden;
+        }
+        .product-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: #FFD700;
+        }
+        .product-name {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .inventory-count {
+            font-size: 36px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .inventory-label {
+            font-size: 12px;
+            color: #888;
+        }
+        .urgency {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .urgency-normal { background: #1a3a1a; color: #4CAF50; }
+        .urgency-warning { background: #3a3a1a; color: #FFD700; animation: pulse 2s infinite; }
+        .urgency-critical { background: #3a1a1a; color: #ff4444; animation: pulse 1s infinite; }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .scan-btn {
+            background: #FFD700;
+            color: #000;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 20px;
+            width: 100%;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s;
+        }
+        .scan-btn:hover { background: #FFC107; transform: scale(1.02); }
+        .scan-btn:active { transform: scale(0.98); }
+        .footer {
+            margin-top: 30px;
+            font-size: 10px;
+            color: #555;
+        }
+        .sound-toggle {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: #1a1a1a;
+            border: 1px solid #FFD700;
+            color: #FFD700;
+            padding: 8px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+        }
+        .loading {
+            color: #888;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <button class="sound-toggle" onclick="toggleSound()">🔊</button>
+    <div class="container">
+        <div class="logo">🦞</div>
+        <h1>EcoCupon</h1>
+        <p class="tagline">Reciclá. Ganá. Repetí.</p>
+        
+        <div id="products">
+            <p class="loading">Cargando inventario...</p>
+        </div>
+        
+        <button class="scan-btn" onclick="scanQR()">
+            📱 Escanear QR
+        </button>
+        
+        <p class="footer">
+            SmarterOS v6.0 · Cyberpunk Yellow & Black<br>
+            © 2026 EcoCupon Chile
+        </p>
+    </div>
+
+    <script>
+        let soundEnabled = true;
+        const API_BASE = '/api/inventory';
+
+        // Cash register sound effect (base64 encoded short "cha-ching")
+        const chaChing = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQ==');
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            document.querySelector('.sound-toggle').textContent = soundEnabled ? '🔊' : '🔇';
+        }
+
+        function playChaChing() {
+            if (soundEnabled) {
+                // Create oscillator for "ding" sound
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.frequency.value = 1200;
+                gain.gain.value = 0.3;
+                osc.start();
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+                osc.stop(ctx.currentTime + 0.5);
+                
+                // Haptic feedback if available
+                if (navigator.vibrate) {
+                    navigator.vibrate(100);
+                }
+            }
+        }
+
+        async function loadInventory() {
+            try {
+                const response = await fetch(`${API_BASE}/ecocupon_cl/remaining`);
+                const data = await response.json();
+                
+                let html = '';
+                data.products.forEach(p => {
+                    const urgencyClass = `urgency-${p.urgency}`;
+                    const urgencyText = {
+                        'normal': `✅ Disponible`,
+                        'warning': `⚠️ ¡Solo quedan ${p.remaining}!`,
+                        'critical': `🚨 ¡Últimos ${p.remaining}!`
+                    }[p.urgency];
+                    
+                    html += `
+                        <div class="product-card">
+                            <div class="product-name">${p.product_name}</div>
+                            <div class="inventory-count">${p.remaining.toLocaleString()}</div>
+                            <div class="inventory-label">unidades disponibles</div>
+                            <span class="urgency ${urgencyClass}">${urgencyText}</span>
+                        </div>
+                    `;
+                });
+                
+                document.getElementById('products').innerHTML = html;
+                playChaChing();
+            } catch (e) {
+                document.getElementById('products').innerHTML = 
+                    '<p class="loading">Error cargando inventario. Recargá la página.</p>';
+            }
+        }
+
+        function scanQR() {
+            playChaChing();
+            // Redirect to checkout or open camera
+            alert('📱 Abriendo escáner QR...\n\n(Tu app escaneará el QR del producto)');
+        }
+
+        // Load on start
+        loadInventory();
+        
+        // Refresh every 30 seconds
+        setInterval(loadInventory, 30000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Set EcoCupon as default theme -->
+    <record id="base.main_company" model="res.company">
+        <field name="name">EcoCupon Chile</field>
+    </record>
+</odoo>

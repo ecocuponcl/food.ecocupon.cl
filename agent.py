@@ -676,6 +676,36 @@ def flow_webhook(data: dict):
     return {"ok": True}
 
 
+# ── Telegram Notifications ─────────────────────────────
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "8690191913:AAEHOJMxdUj2UBSwrPlpW0jZfMUDwpUNWc")
+TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "6683244662")
+
+
+def _send_telegram_alert(material: str, weight: float, cashback: int, phone: str, tenant: str):
+    """Send recycling alert to Telegram admin channel."""
+    if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
+        return
+
+    message = (
+        f"\u267b\ufe0f NUEVO RECICLAJE APROBADO\n\n"
+        f"\U0001f4f1 Tel\u00e9fono: {phone or 'N/A'}\n"
+        f"\U0001f4b0 Cashback: ${cashback:,} CLP\n"
+        f"\U0001f3af Material: {material.upper()}\n"
+        f"\u2696\ufe0f  Peso: {weight} kg\n"
+        f"\U0001f3ea Tenant: {tenant}\n"
+        f"\U0001f553 {datetime.now(timezone.utc).strftime('%H:%M:%S')}"
+    )
+
+    try:
+        requests.post(
+            f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage",
+            json={"chat_id": TELEGRAM_CHAT_ID, "text": message, "parse_mode": "HTML"},
+            timeout=10,
+        )
+    except Exception as e:
+        logger.error(f"Failed to send Telegram alert: {e}")
+
+
 # ── Recycle Routes ─────────────────────────────────────
 @app.post("/recycle/generate_qr")
 def generate_qr(req: dict):
@@ -698,19 +728,40 @@ def generate_qr(req: dict):
 
 @app.post("/recycle/validate", dependencies=[Depends(verify_api_key)])
 def validate_recycle(req: dict):
-    """Validate recycling → cashback."""
-    qr_token = req.get("qr_token", "")
+    """Validate recycling → cashback. Accepts qr_token or qr_code."""
+    qr_token = req.get("qr_token", "") or req.get("qr_code", "")
     phone = req.get("phone", "")
 
-    if qr_token not in qr_tokens:
-        raise HTTPException(400, "QR inválido")
+    if not qr_token or qr_token not in qr_tokens:
+        return {
+            "valid": False,
+            "material": "",
+            "weight": 0,
+            "cashback": 0,
+            "message": "QR inválido o no encontrado",
+            "error": "QR inválido",
+        }
     if qr_tokens[qr_token]["used"]:
-        raise HTTPException(400, "QR ya utilizado")
+        return {
+            "valid": False,
+            "material": qr_tokens[qr_token].get("item", ""),
+            "weight": 0,
+            "cashback": 0,
+            "message": "QR ya utilizado",
+            "error": "QR ya utilizado",
+        }
 
     reward = qr_tokens[qr_token]["reward"]
     fraud = _check_fraud(phone, reward)
     if fraud["blocked"]:
-        raise HTTPException(400, fraud["reason"])
+        return {
+            "valid": False,
+            "material": qr_tokens[qr_token].get("item", ""),
+            "weight": 0,
+            "cashback": 0,
+            "message": fraud["reason"],
+            "error": fraud["reason"],
+        }
 
     if phone not in wallets:
         wallets[phone] = {"balance": 0, "history": []}
@@ -725,22 +776,42 @@ def validate_recycle(req: dict):
     daily["amount"] += reward
     daily["count"] += 1
 
+    item_type = qr_tokens[qr_token]["item"]
+    weight = 0.5  # Default weight per item
+
     qr_tokens[qr_token]["used"] = True
     qr_tokens[qr_token]["recycled_at"] = time.time()
     qr_tokens[qr_token]["phone"] = phone
 
     event = {
         "qr_token": qr_token, "phone": phone,
-        "item": qr_tokens[qr_token]["item"], "reward": reward,
+        "item": item_type, "reward": reward,
         "timestamp": datetime.now(timezone.utc).isoformat(),
     }
     recycle_events.append(event)
     log_event("recycle", "validate", event)
 
+    # Send Telegram alert
+    try:
+        _send_telegram_alert(
+            material=item_type,
+            weight=weight,
+            cashback=reward,
+            phone=phone,
+            tenant="food.ecocupon.cl"
+        )
+    except Exception as e:
+        logger.error(f"Telegram alert error: {e}")
+
     return {
-        "status": "credited", "reward": reward,
+        "valid": True,
+        "material": item_type,
+        "weight": weight,
+        "cashback": reward,
+        "status": "credited",
+        "reward": reward,
         "wallet_balance": wallets[phone]["balance"],
-        "message": f"+${reward} CLP por reciclar",
+        "message": f"+${reward} CLP por reciclar {item_type}",
     }
 
 

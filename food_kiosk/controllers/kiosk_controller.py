@@ -132,12 +132,39 @@ class FoodKioskController(http.Controller):
         token = kw.get('token', '')
         order_id = kw.get('order_id')
         order = None
+        qr_codes = []
+
         if order_id:
             order = request.env['sale.order'].sudo().browse(int(order_id))
+
+            # Generate QR codes for recyclable items in the order
+            try:
+                # Call agent /decide endpoint to generate QR tokens
+                decide_resp = requests.post(
+                    f"{AGENT_URL}/decide",
+                    json={
+                        "vertical": "KIOSK",
+                        "intent": "ACTION",
+                        "data": {
+                            "order_id": int(order_id),
+                            "items": ["combo"],  # Default: assume combo with packaging
+                        },
+                        "metadata": {},
+                    },
+                    timeout=10
+                )
+                if decide_resp.status_code == 200:
+                    result = decide_resp.json()
+                    if result.get('qr_tokens'):
+                        qr_codes = result['qr_tokens']
+            except Exception as e:
+                _logger.warning(f"Failed to generate QR codes: {e}")
+
         return request.render('food_kiosk.kiosk_return', {
             'order': order,
             'token': token,
             'status': kw.get('status', 'pending'),
+            'qr_codes': qr_codes,
         })
 
     @http.route('/kiosk/order/<int:order_id>', type='http', auth='public', website=True)
