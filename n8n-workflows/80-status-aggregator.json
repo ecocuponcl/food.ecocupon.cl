@@ -1,0 +1,249 @@
+{
+  "name": "EcoCupon Status Aggregator",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "*/60 * * * * *"
+            }
+          ]
+        }
+      },
+      "id": "trigger-schedule",
+      "name": "Every 60 seconds",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "http://localhost:9001/health",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "check-agent",
+      "name": "Check Agent",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [500, 100]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "http://localhost:8070",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "check-odoo",
+      "name": "Check Odoo",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [500, 250]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "http://localhost:9004/health",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "check-qr",
+      "name": "Check QR Validator",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [500, 400]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "http://localhost:8501/healthz",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "check-bolt",
+      "name": "Check Bolt",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [500, 550]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "http://localhost:5678/healthz",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "check-n8n",
+      "name": "Check n8n",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [500, 700]
+    },
+    {
+      "parameters": {
+        "jsCode": "const results = [];\nfor (const item of $input.all()) {\n  results.push(item.json);\n}\n\nconst services = {};\nconst now = new Date().toISOString();\nlet overallStatus = 'ok';\n\nresults.forEach(r => {\n  const name = r._service_name || 'unknown';\n  const isOk = r.statusCode >= 200 && r.statusCode < 400;\n  const latency = r._latency_ms || 0;\n  \n  services[name] = {\n    status: isOk ? 'ok' : 'down',\n    latency: latency,\n    last_check: now\n  };\n  \n  if (!isOk) overallStatus = 'degraded';\n});\n\nreturn [{\n  json: {\n    status: overallStatus,\n    services: services,\n    timestamp: now,\n    version: '1.0.0'\n  }\n}];"
+      },
+      "id": "aggregate",
+      "name": "Aggregate Status",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [750, 400]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "tableId": "service_status_logs",
+        "options": {},
+        "columns": "service,status,latency_ms,details,created_at"
+      },
+      "id": "log-supabase",
+      "name": "Log to Supabase",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [1000, 300],
+      "credentials": {
+        "supabaseApi": {
+          "id": "supabase-smarteros",
+          "name": "supabase-smarteros"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.status }}",
+              "value2": "degraded"
+            }
+          ]
+        }
+      },
+      "id": "check-alert",
+      "name": "IF Degraded?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1000, 500]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $env.TELEGRAM_CHAT_ID }}",
+        "text": "🚨 Servicio degradado detectado\n⏰ {{ $now.format('HH:mm') }} UTC\n\n{{ $json.services }}",
+        "additionalFields": {
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "alert-telegram",
+      "name": "Telegram Alert",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [1250, 600],
+      "credentials": {
+        "telegramApi": {
+          "id": "telegram-ecocupon",
+          "name": "Telegram EcoCupon"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:8002/status/update",
+        "bodyParametersUi": {
+          "parameters": [
+            {
+              "name": "status.json",
+              "value": "={{ $json }}"
+            }
+          ]
+        }
+      },
+      "id": "push-status",
+      "name": "Push to OS Portal",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1000, 100]
+    }
+  ],
+  "connections": {
+    "Every 60 seconds": {
+      "main": [
+        [
+          {"node": "Check Agent", "type": "main", "index": 0},
+          {"node": "Check Odoo", "type": "main", "index": 0},
+          {"node": "Check QR Validator", "type": "main", "index": 0},
+          {"node": "Check Bolt", "type": "main", "index": 0},
+          {"node": "Check n8n", "type": "main", "index": 0}
+        ]
+      ]
+    },
+    "Check Agent": {
+      "main": [[{"node": "Aggregate Status", "type": "main", "index": 0}]]
+    },
+    "Check Odoo": {
+      "main": [[{"node": "Aggregate Status", "type": "main", "index": 0}]]
+    },
+    "Check QR Validator": {
+      "main": [[{"node": "Aggregate Status", "type": "main", "index": 0}]]
+    },
+    "Check Bolt": {
+      "main": [[{"node": "Aggregate Status", "type": "main", "index": 0}]]
+    },
+    "Check n8n": {
+      "main": [[{"node": "Aggregate Status", "type": "main", "index": 0}]]
+    },
+    "Aggregate Status": {
+      "main": [
+        [{"node": "Log to Supabase", "type": "main", "index": 0}],
+        [{"node": "Push to OS Portal", "type": "main", "index": 0}],
+        [{"node": "IF Degraded?", "type": "main", "index": 0}]
+      ]
+    },
+    "IF Degraded?": {
+      "main": [[{"node": "Telegram Alert", "type": "main", "index": 0}]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": false,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": ""
+  },
+  "tags": [
+    {"name": "observability"},
+    {"name": "ecocupon"}
+  ],
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "smarter-n8n"
+  }
+}
