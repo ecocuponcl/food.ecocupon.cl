@@ -1,0 +1,211 @@
+{
+  "name": "SmarterBOT Lead Capture",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "clawbot-cotizacion",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-clawbot",
+      "name": "Webhook: CLAWBOT Cotización",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [250, 200],
+      "webhookId": "clawbot-cotizacion"
+    },
+    {
+      "parameters": {
+        "path": "store-contacto",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-contacto",
+      "name": "Webhook: Store Contacto",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [250, 500],
+      "webhookId": "store-contacto"
+    },
+    {
+      "parameters": {
+        "content": "🔥 **Nuevo Lead SmarterBOT Store**\n\n📦 **Producto:** {{ $json.product || $json.service }}\n👤 **Nombre:** {{ $json.name || $json.nombre }}\n📧 **Email:** {{ $json.email }}\n📱 **WhatsApp:** {{ $json.phone || $json.telefono }}\n💬 **Mensaje:** {{ $json.message || $json.mensaje }}\n🔗 **Fuente:** {{ $json.source || 'store.ecocupon.cl' }}\n⏰ **Fecha:** {{ $now.format('DD/MM/YYYY HH:mm') }}",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "telegram-alert",
+      "name": "Telegram: Alert Lead",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [750, 350],
+      "credentials": {
+        "telegramApi": {
+          "id": "smarterbot-telegram",
+          "name": "SmarterBOT Telegram"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "✅ **Lead Recibido**\n\nGracias {{ $json.name || $json.nombre }}! Te contactaremos pronto.\n\n📦 Producto: {{ $json.product || $json.service }}\n📱 WhatsApp: {{ $json.phone || $json.telefono }}",
+        "options": {}
+      },
+      "id": "response-ok",
+      "name": "Response: OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [500, 350]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.ODOO_URL }}/jsonrpc",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "jsonrpc",
+              "value": "2.0"
+            },
+            {
+              "name": "method",
+              "value": "call"
+            },
+            {
+              "name": "params",
+              "value": "={\n  \"service\": \"common\",\n  \"method\": \"login\",\n  \"args\": [\n    \"{{ $env.ODOO_DB }}\",\n    \"{{ $env.ODOO_EMAIL }}\",\n    \"{{ $env.ODOO_PASSWORD }}\"\n  ]\n}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "odoo-create",
+      "name": "Odoo: Create Lead",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1000, 350],
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SUPABASE_URL }}/rest/v1/leads",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{ $env.SUPABASE_KEY }}"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.SUPABASE_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "return=minimal"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "name",
+              "value": "={{ $json.name || $json.nombre }}"
+            },
+            {
+              "name": "email",
+              "value": "={{ $json.email }}"
+            },
+            {
+              "name": "phone",
+              "value": "={{ $json.phone || $json.telefono }}"
+            },
+            {
+              "name": "product",
+              "value": "={{ $json.product || $json.service || 'general' }}"
+            },
+            {
+              "name": "message",
+              "value": "={{ $json.message || $json.mensaje }}"
+            },
+            {
+              "name": "source",
+              "value": "={{ $json.source || 'store.ecocupon.cl' }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "supabase-log",
+      "name": "Supabase: Log Lead",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1000, 200],
+      "disabled": true
+    }
+  ],
+  "connections": {
+    "Webhook: CLAWBOT Cotización": {
+      "main": [
+        [
+          {
+            "node": "Response: OK",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Telegram: Alert Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook: Store Contacto": {
+      "main": [
+        [
+          {
+            "node": "Response: OK",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Telegram: Alert Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram: Alert Lead": {
+      "main": [
+        [
+          {
+            "node": "Supabase: Log Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true
+  },
+  "tags": [
+    { "name": "smarterbot-store" },
+    { "name": "leads" }
+  ],
+  "meta": {
+    "templateCredsSetupCompleted": false,
+    "instanceId": "smarter-n8n"
+  }
+}
