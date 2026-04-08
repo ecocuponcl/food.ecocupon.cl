@@ -17,6 +17,19 @@ www.ecocupon.cl {
     redir https://ecocupon.cl{uri}
 }
 
+# ── SmarterBOT Store ────────────────────────────────────
+store.ecocupon.cl {
+    root * /var/www/smarterbot-store
+    encode gzip
+    file_server
+}
+
+# ── smarterbot.store redirect ──────────────────────────
+# DNS must point smarterbot.store to this VPS (89.116.23.167)
+smarterbot.store www.smarterbot.store {
+    redir https://store.ecocupon.cl{uri} permanent
+}
+
 # ── Agent API ──────────────────────────────────────────
 agent.food.ecocupon.cl {
     reverse_proxy http://localhost:9000

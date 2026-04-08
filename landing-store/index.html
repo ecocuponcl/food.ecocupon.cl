@@ -6,6 +6,18 @@
   <title>SmarterBOT Store - Tu negocio digital, de principio a fin</title>
   <meta name="description" content="Hosting, CLAWBOT Kiosks y Kiosk QR. Todo lo que necesitas para tu negocio digital en un solo lugar.">
   <meta name="theme-color" content="#FFD700">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='%23FFD700'/><circle cx='50' cy='50' r='25' fill='%23000'/></svg>">
+  <link rel="apple-touch-icon" href="favicon.svg">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="SmarterBOT Store - Tu negocio digital, de principio a fin">
+  <meta property="og:description" content="Hosting, CLAWBOT Kiosks y Kiosk QR. Todo lo que necesitas para tu negocio digital en un solo lugar.">
+  <meta property="og:url" content="https://store.ecocupon.cl/">
+  <meta property="og:site_name" content="SmarterBOT Store">
+  <meta property="og:locale" content="es_CL">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="SmarterBOT Store - Tu negocio digital, de principio a fin">
+  <meta name="twitter:description" content="Hosting, CLAWBOT Kiosks y Kiosk QR. Todo lo que necesitas para tu negocio digital.">
+  <link rel="canonical" href="https://store.ecocupon.cl/">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -114,6 +126,41 @@
           <a href="kiosk.html" class="btn btn-outline btn-block">Ver productos</a>
         </div>
       </div>
+    </div>
+  </section>
+
+  <!-- CONTACT FORM -->
+  <section class="section section-alt" id="contacto">
+    <div class="container" style="max-width: 640px;">
+      <div class="section-header">
+        <span class="section-label">Contacto</span>
+        <h2 class="section-title">Escribenos</h2>
+        <p class="section-subtitle">Tienes alguna pregunta? Completa el formulario y te responderemos a la brevedad.</p>
+      </div>
+
+      <form class="lead-form" data-webhook="https://n8n.smarterbot.store/webhook/store-contacto">
+        <input type="hidden" name="service" value="general">
+        <input type="hidden" name="source" value="store.ecocupon.cl">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="nombre">Nombre *</label>
+            <input type="text" id="nombre" name="nombre" class="form-input" placeholder="Tu nombre" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="email">Email *</label>
+            <input type="email" id="email" name="email" class="form-input" placeholder="tu@email.com" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="telefono">Telefono</label>
+          <input type="tel" id="telefono" name="telefono" class="form-input" placeholder="+56 9 1234 5678">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="mensaje">Mensaje *</label>
+          <textarea id="mensaje" name="mensaje" class="form-textarea" placeholder="Como podemos ayudarte?" required></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary btn-lg btn-block">Enviar mensaje</button>
+      </form>
     </div>
   </section>
 

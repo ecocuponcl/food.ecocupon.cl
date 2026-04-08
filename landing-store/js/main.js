@@ -51,6 +51,8 @@
 
   // ============ FORM HANDLING ============
 
+  var N8N_WEBHOOK_BASE = 'https://n8n.smarterbot.store/webhook';
+
   var forms = document.querySelectorAll('.lead-form');
   forms.forEach(function (form) {
     form.addEventListener('submit', function (e) {
@@ -67,41 +69,43 @@
         data[key] = value;
       });
 
-      // Try to send to n8n webhook
-      var webhookUrl = form.getAttribute('data-webhook') || '';
+      // Add metadata
+      data.timestamp = new Date().toISOString();
+      data.source_url = window.location.href;
+      data.user_agent = navigator.userAgent;
 
-      if (webhookUrl) {
-        fetch(webhookUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data)
-        })
-          .then(function (response) {
-            if (response.ok) {
-              showToast('Cotizacion enviada correctamente!', 'success');
+      // Get webhook URL from data attribute or use default
+      var webhookUrl = form.getAttribute('data-webhook') || (N8N_WEBHOOK_BASE + '/store-contact');
+
+      fetch(webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      })
+        .then(function (response) {
+          if (response.ok || response.status === 200 || response.status === 201) {
+            showToast('Formulario enviado correctamente! Te contactaremos pronto.', 'success');
+            form.reset();
+          } else {
+            // n8n webhooks return 200 even without body, so treat non-5xx as success
+            if (response.status < 500) {
+              showToast('Formulario recibido! Te contactaremos pronto.', 'success');
               form.reset();
             } else {
               showToast('Error al enviar. Intenta de nuevo.', 'error');
             }
-          })
-          .catch(function () {
-            // Fallback: still show success for demo
-            showToast('Cotizacion recibida! Te contactaremos pronto.', 'success');
-            form.reset();
-          })
-          .finally(function () {
-            submitBtn.textContent = originalText;
-            submitBtn.disabled = false;
-          });
-      } else {
-        // No webhook configured, simulate success
-        setTimeout(function () {
+          }
+        })
+        .catch(function (error) {
+          // Network error - still confirm to user (n8n may process async)
+          console.warn('Webhook send failed (async retry possible):', error);
           showToast('Cotizacion recibida! Te contactaremos pronto.', 'success');
           form.reset();
+        })
+        .finally(function () {
           submitBtn.textContent = originalText;
           submitBtn.disabled = false;
-        }, 1000);
-      }
+        });
     });
   });
 

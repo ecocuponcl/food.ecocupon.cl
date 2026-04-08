@@ -1,0 +1,9 @@
+# robots.txt for SmarterBOT Store
+User-agent: *
+Allow: /
+
+Sitemap: https://store.ecocupon.cl/sitemap.xml
+
+# Disallow admin and private areas
+Disallow: /css/
+Disallow: /js/

@@ -6,6 +6,18 @@
   <title>CLAWBOT - Kiosks a Medida | SmarterBOT Store</title>
   <meta name="description" content="Te hacemos tu kiosk personalizado. Desde cotizacion hasta deploy. 25 UF/mes todo incluido.">
   <meta name="theme-color" content="#FFD700">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='%23FFD700'/><circle cx='50' cy='50' r='25' fill='%23000'/></svg>">
+  <link rel="apple-touch-icon" href="favicon.svg">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="CLAWBOT - Kiosks a Medida | SmarterBOT Store">
+  <meta property="og:description" content="Te hacemos tu kiosk personalizado. Desde cotizacion hasta deploy. 25 UF/mes todo incluido.">
+  <meta property="og:url" content="https://store.ecocupon.cl/clawbot.html">
+  <meta property="og:site_name" content="SmarterBOT Store">
+  <meta property="og:locale" content="es_CL">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="CLAWBOT - Kiosks a Medida | SmarterBOT Store">
+  <meta name="twitter:description" content="Kiosks personalizados con Flow.cl, Odoo y branding custom. 25 UF/mes.">
+  <link rel="canonical" href="https://store.ecocupon.cl/clawbot.html">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -161,7 +173,9 @@
         <p class="section-subtitle">Completa el formulario y te contactaremos en 24-48 horas con una propuesta personalizada.</p>
       </div>
 
-      <form class="lead-form" data-webhook="">
+      <form class="lead-form" id="cotizacion-form" data-webhook="https://n8n.smarterbot.store/webhook/clawbot-cotizacion">
+        <input type="hidden" name="service" value="clawbot">
+        <input type="hidden" name="source" value="store.ecocupon.cl">
         <div class="form-row">
           <div class="form-group">
             <label class="form-label" for="nombre">Nombre *</label>
