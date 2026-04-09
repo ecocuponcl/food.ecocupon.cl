@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SmarterOS Control Tower</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, sans-serif; background: #0a0a0a; color: #FFD700; min-height: 100vh; padding: 20px; }
+.container { max-width: 1200px; margin: 0 auto; }
+h1 { text-align: center; padding: 20px 0; font-size: 28px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; margin: 15px 0; }
+.card { background: #1a1a1a; border-radius: 12px; padding: 20px; border: 1px solid #333; }
+.card h3 { font-size: 14px; color: #888; margin-bottom: 10px; text-transform: uppercase; }
+.metric { font-size: 32px; font-weight: 800; }
+.green { color: #4CAF50; }
+.yellow { color: #FFD700; }
+.orange { color: #FF9800; }
+.red { color: #f44336; }
+.gauge { width: 100%; height: 8px; background: #333; border-radius: 4px; margin-top: 10px; overflow: hidden; }
+.gauge-fill { height: 100%; border-radius: 4px; transition: width 0.5s; }
+.lead-item { display: flex; justify-content: space-between; padding: 12px; margin: 8px 0; background: #111; border-radius: 8px; border-left: 4px solid; }
+.lead-name { font-weight: 600; }
+.lead-meta { font-size: 12px; color: #888; }
+.lead-score { font-size: 20px; font-weight: 800; }
+.svc { display: inline-block; padding: 4px 12px; margin: 3px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+.svc-ok { background: #4CAF5020; color: #4CAF50; border: 1px solid #4CAF5040; }
+.svc-err { background: #f4433620; color: #f44336; border: 1px solid #f4433640; }
+#lastUpdate { text-align: center; color: #666; font-size: 12px; padding: 20px; }
+.loading { text-align: center; padding: 40px; color: #888; }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>🟡⚫ SmarterOS Control Tower</h1>
+
+<div class="grid">
+<!-- System Balance -->
+<div class="card">
+<h3>🔷 Balance del Sistema</h3>
+<div id="balanceGauge" class="metric green">--</div>
+<div class="gauge"><div id="balanceFill" class="gauge-fill" style="width:0%;background:#4CAF50"></div></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:15px">
+<div><div style="color:#888;font-size:12px">YIN (Observar)</div><div id="yinScore" class="metric" style="font-size:24px">--</div></div>
+<div><div style="color:#888;font-size:12px">YANG (Actuar)</div><div id="yangScore" class="metric" style="font-size:24px">--</div></div>
+<div><div style="color:#888;font-size:12px">Flujo</div><div id="flowScore" class="metric" style="font-size:24px">--</div></div>
+<div><div style="color:#888;font-size:12px">Estrés</div><div id="stressScore" class="metric" style="font-size:24px">--</div></div>
+</div>
+</div>
+
+<!-- Revenue Summary -->
+<div class="card">
+<h3>💰 Revenue Pipeline</h3>
+<div id="totalLeads" class="metric yellow">--</div>
+<div style="color:#888;font-size:12px">Leads clasificados</div>
+<div style="margin-top:15px">
+<div style="display:flex;justify-content:space-between"><span class="green">🔥 Hot (aggressive)</span><span id="hotCount" class="metric green" style="font-size:24px">--</span></div>
+<div style="display:flex;justify-content:space-between"><span class="orange">⏳ Warm (nurture)</span><span id="warmCount" class="metric orange" style="font-size:24px">--</span></div>
+<div style="display:flex;justify-content:space-between"><span class="red">❌ Lost</span><span id="lostCount" class="metric red" style="font-size:24px">--</span></div>
+</div>
+</div>
+
+<!-- Services -->
+<div class="card">
+<h3>🔧 Servicios</h3>
+<div id="servicesGrid" class="loading">Cargando...</div>
+</div>
+
+<!-- HOT Lead Alerts -->
+<div class="card">
+<h3>🔥 HOT Lead Alerts</h3>
+<div id="hotAlerts" class="loading">Cargando...</div>
+</div>
+</div>
+
+<!-- Top Leads -->
+<div class="card">
+<h3>👥 Top Leads por Score</h3>
+<div id="leadsList"></div>
+</div>
+
+<div id="lastUpdate">Última actualización: --</div>
+</div>
+
+<script>
+const API_BASE = window.location.protocol + '//' + window.location.host;
+
+async function fetchJSON(url) {
+    try {
+        const r = await fetch(url);
+        return r.ok ? await r.json() : null;
+    } catch(e) { return null; }
+}
+
+function scoreColor(s) { return s >= 70 ? '#4CAF50' : s >= 40 ? '#FF9800' : '#f44336'; }
+
+async function update() {
+    const [balance, revenue, services] = await Promise.all([
+        fetchJSON(API_BASE + '/balance.json'),
+        fetchJSON(API_BASE + '/revenue.json'),
+        fetchJSON(API_BASE + '/status.json')
+    ]);
+
+    // Balance
+    if (balance) {
+        const b = balance.balance_score || 0;
+        document.getElementById('balanceGauge').textContent = b.toFixed(1);
+        document.getElementById('balanceGauge').style.color = scoreColor(b);
+        document.getElementById('balanceFill').style.width = b + '%';
+        document.getElementById('balanceFill').style.background = scoreColor(b);
+        document.getElementById('yinScore').textContent = balance.yin_score || '--';
+        document.getElementById('yangScore').textContent = (balance.yang_score || '--');
+        document.getElementById('flowScore').textContent = (balance.flow_score || '--');
+        document.getElementById('stressScore').textContent = (balance.stress_score || '--');
+    }
+
+    // Revenue
+    if (revenue) {
+        document.getElementById('totalLeads').textContent = revenue.total_leads || 0;
+        const byAction = revenue.by_action || {};
+        document.getElementById('hotCount').textContent = byAction.aggressive_close || 0;
+        document.getElementById('warmCount').textContent = byAction.nurture || 0;
+        document.getElementById('lostCount').textContent = byAction.mark_lost || 0;
+
+        // HOT alerts
+        const alerts = revenue.recent_actions || [];
+        const hotAlerts = alerts.filter(a => a.action.includes('sequence') || a.action.includes('HOT'));
+        const alertsDiv = document.getElementById('hotAlerts');
+        if (hotAlerts.length > 0) {
+            alertsDiv.innerHTML = hotAlerts.slice(0, 5).map(a =>
+                `<div style="padding:8px;margin:4px 0;background:#ff444420;border-radius:6px;font-size:12px">🔥 ${a.detail}</div>`
+            ).join('');
+        } else {
+            alertsDiv.innerHTML = '<div style="color:#888;font-size:12px">No recent HOT alerts</div>';
+        }
+
+        // Leads list
+        const leads = revenue.top_leads || [];
+        const leadsDiv = document.getElementById('leadsList');
+        if (leads.length > 0) {
+            leadsDiv.innerHTML = leads.map(l => {
+                const score = l.revenue_score || 0;
+                const color = scoreColor(score);
+                return `<div class="lead-item" style="border-left-color:${color}">
+                    <div>
+                        <div class="lead-name">${l.name || 'Unknown'}</div>
+                        <div class="lead-meta">${l.product || '?'} · ${l.status || '?'}</div>
+                    </div>
+                    <div class="lead-score" style="color:${color}">${score}</div>
+                </div>`;
+            }).join('');
+        }
+    }
+
+    // Services
+    if (services) {
+        const svcs = services.services || {};
+        const grid = document.getElementById('servicesGrid');
+        grid.innerHTML = Object.entries(svcs).map(([name, info]) => {
+            const ok = info.status === 'ok';
+            const cls = ok ? 'svc-ok' : 'svc-err';
+            const icon = ok ? '✅' : '❌';
+            return `<span class="svc ${cls}">${icon} ${name} (${info.latency_ms || 0}ms)</span>`;
+        }).join('');
+    }
+
+    document.getElementById('lastUpdate').textContent = 'Última actualización: ' + new Date().toLocaleTimeString('es-CL');
+}
+
+// Initial load + auto-refresh
+update();
+setInterval(update, 15000);
+</script>
+</body>
+</html>
