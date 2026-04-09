@@ -33,7 +33,7 @@
     "check": "api.calls_per_minute < api.rate_limit",
     "action": "reject",
     "severity": "high",
-    "weight": 0.07,
+    "weight": 0.063,
     "enabled": true,
     "phase": "pre",
     "description": "Rate limit exceeded = API bloqueada"
@@ -59,7 +59,7 @@
     "check": "system.has_redundancy == true || system.is_non_critical == true",
     "action": "flag_for_review",
     "severity": "high",
-    "weight": 0.07,
+    "weight": 0.063,
     "enabled": true,
     "phase": "post",
     "description": "SPOF = outage garantizado"
@@ -85,7 +85,7 @@
     "check": "action.audit_logged == true",
     "action": "reject",
     "severity": "high",
-    "weight": 0.07,
+    "weight": 0.063,
     "enabled": true,
     "phase": "post",
     "description": "Sin audit trail, no hay compliance"
@@ -98,7 +98,7 @@
     "check": "cost.estimated <= budget.allocated",
     "action": "require_confirmation",
     "severity": "high",
-    "weight": 0.07,
+    "weight": 0.063,
     "enabled": true,
     "phase": "pre",
     "description": "Over budget = proyecto cancelado"

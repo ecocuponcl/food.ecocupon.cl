@@ -1,0 +1,134 @@
+{
+  "sessions": [
+    {
+      "timestamp": "2026-04-09T21:33:17.186599+00:00",
+      "scores_analyzed": 7,
+      "analysis": {
+        "total": 7,
+        "avg_score": 0.32,
+        "pass_rate": 0.0,
+        "category_stats": {
+          "unknown": {
+            "total": 262,
+            "failed": 262
+          }
+        },
+        "most_failed_rules": [
+          {
+            "id": "TECH_03",
+            "count": 7
+          },
+          {
+            "id": "OPS_02",
+            "count": 7
+          },
+          {
+            "id": "OPS_03",
+            "count": 7
+          },
+          {
+            "id": "OPS_05",
+            "count": 7
+          },
+          {
+            "id": "OPS_07",
+            "count": 7
+          },
+          {
+            "id": "OPS_10",
+            "count": 7
+          },
+          {
+            "id": "RISK_03",
+            "count": 7
+          },
+          {
+            "id": "RISK_05",
+            "count": 7
+          },
+          {
+            "id": "RISK_07",
+            "count": 7
+          },
+          {
+            "id": "RISK_08",
+            "count": 7
+          }
+        ]
+      },
+      "changes": [
+        {
+          "rule_id": "TECH_03",
+          "action": "decreased",
+          "reason": "Fails 100% of time \u2014 may be too strict",
+          "old_weight": 0.08,
+          "new_weight": 0.07200000000000001
+        },
+        {
+          "rule_id": "OPS_02",
+          "action": "decreased",
+          "reason": "Fails 100% of time \u2014 may be too strict",
+          "old_weight": 0.07,
+          "new_weight": 0.06300000000000001
+        },
+        {
+          "rule_id": "OPS_03",
+          "action": "decreased",
+          "reason": "Fails 100% of time \u2014 may be too strict",
+          "old_weight": 0.07,
+          "new_weight": 0.06300000000000001
+        },
+        {
+          "rule_id": "OPS_05",
+          "action": "decreased",
+          "reason": "Fails 100% of time \u2014 may be too strict",
+          "old_weight": 0.07,
+          "new_weight": 0.06300000000000001
+        },
+        {
+          "rule_id": "OPS_07",
+          "action": "decreased",
+          "reason": "Fails 100% of time \u2014 may be too strict",
+          "old_weight": 0.07,
+          "new_weight": 0.06300000000000001
+        },
+        {
+          "rule_id": "OPS_10",
+          "action": "decreased",
+          "reason": "Fails 100% of time \u2014 may be too strict",
+          "old_weight": 0.07,
+          "new_weight": 0.06300000000000001
+        },
+        {
+          "rule_id": "RISK_03",
+          "action": "decreased",
+          "reason": "Fails 100% of time \u2014 may be too strict",
+          "old_weight": 0.07,
+          "new_weight": 0.06300000000000001
+        },
+        {
+          "rule_id": "RISK_05",
+          "action": "decreased",
+          "reason": "Fails 100% of time \u2014 may be too strict",
+          "old_weight": 0.07,
+          "new_weight": 0.06300000000000001
+        },
+        {
+          "rule_id": "RISK_07",
+          "action": "decreased",
+          "reason": "Fails 100% of time \u2014 may be too strict",
+          "old_weight": 0.07,
+          "new_weight": 0.06300000000000001
+        },
+        {
+          "rule_id": "RISK_08",
+          "action": "decreased",
+          "reason": "Fails 100% of time \u2014 may be too strict",
+          "old_weight": 0.07,
+          "new_weight": 0.06300000000000001
+        }
+      ],
+      "rules_touched": 53
+    }
+  ]
+}

@@ -33,7 +33,7 @@
     "check": "validated == true",
     "action": "reject",
     "severity": "critical",
-    "weight": 0.08,
+    "weight": 0.072,
     "enabled": true,
     "phase": "pre",
     "description": "Sin validaci\u00f3n, garbage in = garbage out"
