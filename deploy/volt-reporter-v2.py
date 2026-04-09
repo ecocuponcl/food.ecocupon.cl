@@ -166,7 +166,35 @@ async def send_daily_report(report):
         f"🤖 <b>Volt Daily Report — {date}</b>\n\n"
         f"📡 <b>Agents:</b> {agents_healthy}/{agents_total} healthy\n"
         + "\n".join(agent_lines) + f"\n\n"
-        f"🐳 <b>Docker:</b> {docker.get('running', 0)}/{docker.get('total', 0)} containers\n\n"
+        f"🐳 <b>Docker:</b> {docker.get('running', 0)}/{docker.get('total', 0)} containers\n"
+    )
+    
+    # BRF section
+    try:
+        tuning_log = BASE / "tuning-log.json"
+        scores_dir = BASE / "rule-scores"
+        brf_lines = ["\n🧠 <b>Business Rules (BRF):</b>"]
+        if tuning_log.exists():
+            with open(tuning_log) as tf:
+                tuning = json.load(tf)
+            sessions = tuning.get("sessions", [])
+            if sessions:
+                latest = sessions[0]
+                analysis = latest.get("analysis", {})
+                brf_lines.append(f"  Rules: 53 | Avg Score: {analysis.get('avg_score', '?')}")
+                brf_lines.append(f"  Pass Rate: {analysis.get('pass_rate', '?')}")
+                changes = latest.get("changes", [])
+                if changes:
+                    brf_lines.append(f"  Tuned: {len(changes)} rules adjusted")
+        if scores_dir.exists():
+            score_files = list(scores_dir.glob("*.json"))
+            brf_lines.append(f"  Evaluations: {len(score_files)}")
+        brf_lines.append("")
+        msg += "\n".join(brf_lines)
+    except Exception as e:
+        msg += f"\n🧠 <b>BRF:</b> Error ({e})\n\n"
+    
+    msg += (
         f"💰 <b>Revenue Pipeline:</b>\n"
         f"  Leads: {revenue.get('total_leads', 0)}\n"
         f"  Scored: {revenue.get('scored', 0)}\n"
@@ -174,7 +202,7 @@ async def send_daily_report(report):
         f"  ⏳ Warm: {revenue.get('warm', 0)}\n"
         f"  ❌ Lost: {revenue.get('lost', 0)}"
         + top_leads_text +
-        f"\n📊 Score: {min(100, 70 + agents_healthy * 3 + docker.get('running', 0))}"
+        f"\n\n📊 Score: {min(100, 70 + agents_healthy * 3 + docker.get('running', 0))}"
     )
     
     # Send via Telegram
