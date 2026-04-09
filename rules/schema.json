@@ -1,0 +1,19 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SmarterBOT Rule",
+  "type": "object",
+  "required": ["id", "category", "name", "rule", "severity"],
+  "properties": {
+    "id": {"type": "string", "pattern": "^[A-Z]+_\\d+[A-Z]*$"},
+    "category": {"enum": ["revenue", "operations", "technical", "ux", "risk"]},
+    "name": {"type": "string"},
+    "rule": {"type": "string"},
+    "check": {"type": "string"},
+    "action": {"enum": ["reject", "force_delegation", "require_execution", "suggest_automation", "require_confirmation", "flag_for_review", "warn"]},
+    "severity": {"enum": ["critical", "high", "medium", "low"]},
+    "weight": {"type": "number", "minimum": 0, "maximum": 1},
+    "enabled": {"type": "boolean"},
+    "phase": {"enum": ["pre", "post"]},
+    "description": {"type": "string"}
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "version": "1.0.0",
+  "total_rules": 53,
+  "categories": {
+    "revenue": {"file": "revenue.json", "count": 10},
+    "operations": {"file": "operations.json", "count": 13},
+    "technical": {"file": "technical.json", "count": 10},
+    "ux": {"file": "ux.json", "count": 10},
+    "risk": {"file": "risk.json", "count": 10}
+  },
+  "weights": {
+    "revenue": 0.30,
+    "operations": 0.25,
+    "technical": 0.20,
+    "ux": 0.15,
+    "risk": 0.10
+  },
+  "thresholds": {
+    "approve": 0.85,
+    "warn": 0.70,
+    "retry": 0.50,
+    "reject": 0.00
+  },
+  "sync": {
+    "local_dir": "/Users/mac/dev/2026/food.ecocupon.cl/rules",
+    "vps_dir": "/opt/smarterbot/rules",
+    "vps_host": "89.116.23.167"
+  }
+}
