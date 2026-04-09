@@ -1,0 +1,106 @@
+{
+  "name": "40 - Email Lead Scraper",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            { "field": "minutes", "minutesInterval": 5 }
+          ]
+        }
+      },
+      "id": "trigger-schedule",
+      "name": "Every 5 minutes",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "limit": 10,
+        "downloadAttachments": false
+      },
+      "id": "imap-read",
+      "name": "Read Emails (IMAP)",
+      "type": "n8n-nodes-base.emailReadImap",
+      "typeVersion": 1,
+      "position": [500, 300],
+      "credentials": {
+        "imap": { "id": "imap-smarterbot", "name": "SmarterBOT IMAP" }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "=Bearer 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" },
+            { "name": "HTTP-Referer", "value": "https://smarterbot.store" },
+            { "name": "X-Title", "value": "SmarterBOT Email Scraper" }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "model", "value": "qwen/qwen-turbo" },
+            { "name": "messages", "value": "=[{\"role\":\"system\",\"content\":\"You are a lead qualification assistant for SmarterBOT. Analyze emails and respond with JSON ONLY: {\\\"is_lead\\\": true/false, \\\"score\\\": 0-100, \\\"product_interest\\\": \\\"CLAWBOT/Hosting/Kiosk/Other\\\", \\\"summary\\\": \\\"brief summary\\\", \\\"urgency\\\": \\\"high/medium/low\\\"}\"},{\"role\":\"user\",\"content\":\"Subject: {{ $json.subject }}\\nFrom: {{ $json.from }}\\nBody: {{ $json.text }}\"}]" },
+            { "name": "max_tokens", "value": "200" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "llm-analyze",
+      "name": "LLM Intent Analysis",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [750, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const results = [];\nfor (const item of $input.all()) {\n  try {\n    const llm = JSON.parse(item.json.choices[0].message.content);\n    if (llm.is_lead && llm.score >= 40) {\n      results.push({\n        json: {\n          nombre: item.json.from.split('<')[0].trim() || item.json.from,\n          email: item.json.from.match(/<(.+?)>/)?.[1] || item.json.from,\n          telefono: '',\n          mensaje: llm.summary,\n          product: llm.product_interest,\n          source: 'email-scraper',\n          revenue_score: llm.score,\n          urgency: llm.urgency\n        }\n      });\n    }\n  } catch(e) { /* skip parse errors */ }\n}\nreturn results;"
+      },
+      "id": "filter-leads",
+      "name": "Filter Qualified Leads",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1000, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:8004/store-contacto",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "nombre", "value": "={{ $json.nombre }}" },
+            { "name": "email", "value": "={{ $json.email }}" },
+            { "name": "telefono", "value": "={{ $json.telefono }}" },
+            { "name": "mensaje", "value": "={{ $json.mensaje }}" },
+            { "name": "product", "value": "={{ $json.product }}" },
+            { "name": "source", "value": "={{ $json.source }}" },
+            { "name": "revenue_score", "value": "={{ $json.revenue_score }}" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "webhook-add-lead",
+      "name": "Add to Pipeline",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1250, 300]
+    }
+  ],
+  "connections": {
+    "Every 5 minutes": { "main": [[{ "node": "Read Emails (IMAP)", "type": "main", "index": 0 }]] },
+    "Read Emails (IMAP)": { "main": [[{ "node": "LLM Intent Analysis", "type": "main", "index": 0 }]] },
+    "LLM Intent Analysis": { "main": [[{ "node": "Filter Qualified Leads", "type": "main", "index": 0 }]] },
+    "Filter Qualified Leads": { "main": [[{ "node": "Add to Pipeline", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "name": "email-scraper" }, { "name": "lead-generation" }, { "name": "revenue" }]
+}
