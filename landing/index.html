@@ -3,394 +3,369 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EcoCupon — Convierte residuos en dinero</title>
-    <meta name="description" content="Sistema que convierte cualquier activo en dinero automáticamente. Reciclaje con cashback real.">
+    <title>Smarter Dumper — No solo datos, movemos toneladas</title>
+    <meta name="description" content="Flota sensorizada en Chile y México. Cada movimiento es un evento contable. Si se mueve en la montaña, se factura en Odoo.">
+    <meta property="og:title" content="Smarter Dumper — EcoCupon Chile">
+    <meta property="og:description" content="No solo hablamos de datos; movemos toneladas. Flota sensorizada STGO → México.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://ecocupon.cl">
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', -apple-system, sans-serif; line-height: 1.6; color: #1a1a1a; background: #fafafa; }
+        :root {
+            --yellow: #FFD700;
+            --black: #000000;
+            --dark: #0a0a0a;
+            --gray: #1a1a1a;
+            --light: #f5f5f5;
+        }
+        body { font-family: 'Inter', -apple-system, sans-serif; line-height: 1.6; color: var(--light); background: var(--black); }
         .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+        .mono { font-family: 'JetBrains Mono', monospace; }
 
         /* ── NAV ─────────────────────────────────────── */
-        nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(0,0,0,0.85); backdrop-filter: blur(20px); padding: 16px 0; }
+        nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(0,0,0,0.95); backdrop-filter: blur(20px); padding: 16px 0; border-bottom: 1px solid rgba(255,215,0,0.1); }
         nav .container { display: flex; justify-content: space-between; align-items: center; }
-        .logo { font-size: 1.5rem; font-weight: 900; color: white; text-decoration: none; }
-        .logo span { color: #10b981; }
-        .nav-cta { background: #10b981; color: white; padding: 10px 24px; border-radius: 50px; text-decoration: none; font-weight: 600; font-size: 0.9rem; transition: all 0.2s; }
-        .nav-cta:hover { background: #059669; transform: scale(1.05); }
+        .logo { font-size: 1.5rem; font-weight: 900; color: var(--yellow); text-decoration: none; letter-spacing: -0.03em; }
+        .logo span { color: #fff; }
+        .nav-links { display: flex; gap: 24px; align-items: center; }
+        .nav-links a { color: #888; text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: color 0.2s; }
+        .nav-links a:hover { color: var(--yellow); }
+        .nav-cta { background: var(--yellow); color: #000; padding: 10px 24px; border-radius: 50px; text-decoration: none; font-weight: 700; font-size: 0.85rem; transition: all 0.2s; text-transform: uppercase; letter-spacing: 0.05em; }
+        .nav-cta:hover { background: #FFC107; transform: scale(1.05); }
 
         /* ── HERO ────────────────────────────────────── */
         .hero { position: relative; min-height: 100vh; display: flex; align-items: center; overflow: hidden; }
-        .hero-bg { position: absolute; inset: 0; background: url('https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=1920&q=80') center/cover; }
-        .hero-bg::after { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 50%, rgba(16,185,129,0.3) 100%); }
-        .hero-content { position: relative; z-index: 2; color: white; max-width: 700px; }
-        .hero-badge { display: inline-block; background: rgba(16,185,129,0.2); border: 1px solid rgba(16,185,129,0.4); color: #6ee7b7; padding: 8px 20px; border-radius: 50px; font-size: 0.85rem; font-weight: 600; margin-bottom: 24px; backdrop-filter: blur(10px); }
-        .hero h1 { font-size: clamp(2.5rem, 6vw, 4.5rem); font-weight: 900; line-height: 1.05; margin-bottom: 20px; letter-spacing: -0.03em; }
-        .hero h1 .accent { color: #10b981; }
-        .hero p { font-size: clamp(1.1rem, 2vw, 1.35rem); opacity: 0.9; margin-bottom: 40px; max-width: 550px; line-height: 1.7; }
-        .hero-buttons { display: flex; gap: 16px; flex-wrap: wrap; }
-        .btn { display: inline-flex; align-items: center; gap: 10px; padding: 18px 36px; border-radius: 60px; font-size: 1.1rem; font-weight: 700; text-decoration: none; border: none; cursor: pointer; transition: all 0.3s; }
-        .btn:hover { transform: translateY(-3px); box-shadow: 0 12px 35px rgba(0,0,0,0.2); }
-        .btn-primary { background: #10b981; color: white; }
-        .btn-primary:hover { background: #059669; }
-        .btn-outline { background: rgba(255,255,255,0.1); color: white; border: 2px solid rgba(255,255,255,0.3); backdrop-filter: blur(10px); }
-        .btn-outline:hover { background: rgba(255,255,255,0.2); border-color: white; }
-        .btn-whatsapp { background: #25d366; color: white; }
-        .btn-whatsapp:hover { background: #128c7e; }
-
-        /* ── STATS BAR ───────────────────────────────── */
-        .stats-bar { background: white; border-bottom: 1px solid #e5e7eb; padding: 30px 0; }
-        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; text-align: center; }
-        .stat-value { font-size: 2.5rem; font-weight: 900; color: #10b981; line-height: 1; }
-        .stat-label { color: #6b7280; font-size: 0.85rem; margin-top: 6px; font-weight: 500; }
-
-        /* ── HOW IT WORKS ────────────────────────────── */
-        .how { padding: 100px 0; background: white; }
-        .section-title { text-align: center; font-size: clamp(2rem, 4vw, 3rem); font-weight: 900; margin-bottom: 16px; letter-spacing: -0.02em; }
-        .section-sub { text-align: center; color: #6b7280; font-size: 1.15rem; max-width: 600px; margin: 0 auto 60px; }
-        .steps-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; }
-        .step { text-align: center; padding: 40px 30px; border-radius: 24px; background: #f9fafb; border: 1px solid #e5e7eb; transition: all 0.3s; }
-        .step:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0,0,0,0.08); border-color: #10b981; }
-        .step-img { width: 100%; height: 200px; object-fit: cover; border-radius: 16px; margin-bottom: 24px; }
-        .step-num { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; background: #10b981; color: white; border-radius: 50%; font-weight: 800; font-size: 1.1rem; margin-bottom: 16px; }
-        .step h3 { font-size: 1.35rem; font-weight: 800; margin-bottom: 10px; }
-        .step p { color: #6b7280; font-size: 0.95rem; }
-
-        /* ── VERTICALS ───────────────────────────────── */
-        .verticals { padding: 100px 0; background: #f9fafb; }
-        .vert-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; }
-        .vert-card { background: white; border-radius: 24px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.06); transition: all 0.3s; }
-        .vert-card:hover { transform: translateY(-8px); box-shadow: 0 20px 50px rgba(0,0,0,0.12); }
-        .vert-img { width: 100%; height: 240px; object-fit: cover; }
-        .vert-body { padding: 30px; }
-        .vert-body h3 { font-size: 1.5rem; font-weight: 800; margin-bottom: 10px; }
-        .vert-body p { color: #6b7280; margin-bottom: 20px; }
-        .vert-flow { background: #f0fdf4; padding: 14px 18px; border-radius: 12px; font-family: 'SF Mono', monospace; font-size: 0.85rem; color: #059669; margin-bottom: 20px; }
-        .vert-card .btn { width: 100%; justify-content: center; padding: 14px; font-size: 1rem; }
-
-        /* ── DEMO ────────────────────────────────────── */
-        .demo { padding: 100px 0; background: linear-gradient(135deg, #064e3b 0%, #065f46 50%, #047857 100%); color: white; }
-        .demo-box { background: white; color: #1a1a1a; border-radius: 24px; padding: 40px; max-width: 650px; margin: 0 auto; box-shadow: 0 25px 60px rgba(0,0,0,0.3); }
-        .demo-tabs { display: flex; gap: 8px; margin-bottom: 24px; }
-        .demo-tab { flex: 1; padding: 14px; border: 2px solid #e5e7eb; border-radius: 12px; background: white; cursor: pointer; font-weight: 700; text-align: center; transition: all 0.2s; font-size: 0.95rem; }
-        .demo-tab.active { border-color: #10b981; background: #f0fdf4; color: #059669; }
-        .demo-form { display: none; }
-        .demo-form.active { display: block; }
-        .demo-form input, .demo-form select { width: 100%; padding: 14px 18px; margin-bottom: 14px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 1rem; font-family: inherit; transition: border-color 0.2s; }
-        .demo-form input:focus, .demo-form select:focus { outline: none; border-color: #10b981; }
-        .demo-form .btn { width: 100%; justify-content: center; background: #10b981; color: white; padding: 16px; }
-        .demo-result { margin-top: 24px; padding: 24px; background: #f0fdf4; border-radius: 16px; display: none; }
-        .demo-result.show { display: block; }
-        .demo-result h4 { color: #059669; margin-bottom: 12px; font-size: 1.2rem; }
-        .demo-result pre { background: #1a1a1a; color: #10b981; padding: 20px; border-radius: 12px; overflow-x: auto; font-size: 0.8rem; line-height: 1.6; }
-
-        /* ── PRICING ─────────────────────────────────── */
-        .pricing { padding: 100px 0; background: white; }
-        .pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; max-width: 1000px; margin: 0 auto; }
-        .price-card { background: white; border-radius: 24px; padding: 40px 30px; text-align: center; border: 2px solid #e5e7eb; position: relative; transition: all 0.3s; }
-        .price-card:hover { transform: translateY(-8px); box-shadow: 0 20px 50px rgba(0,0,0,0.1); }
-        .price-card.featured { border-color: #10b981; box-shadow: 0 10px 40px rgba(16,185,129,0.15); }
-        .price-card.featured::before { content: "⭐ Popular"; position: absolute; top: -14px; left: 50%; transform: translateX(-50%); background: #10b981; color: white; padding: 6px 20px; border-radius: 50px; font-size: 0.8rem; font-weight: 700; }
-        .price-card h3 { font-size: 1.4rem; font-weight: 800; margin-bottom: 8px; }
-        .price-card .price { font-size: 3rem; font-weight: 900; color: #10b981; margin: 20px 0; }
-        .price-card .price span { font-size: 1rem; font-weight: 500; color: #6b7280; }
-        .price-card ul { list-style: none; margin: 24px 0; text-align: left; }
-        .price-card ul li { padding: 10px 0; border-bottom: 1px solid #f3f4f6; font-size: 0.95rem; }
-        .price-card ul li::before { content: "✓ "; color: #10b981; font-weight: 700; }
-        .price-card .btn { width: 100%; justify-content: center; padding: 14px; }
-
-        /* ── CTA ─────────────────────────────────────── */
-        .cta-section { padding: 100px 0; background: linear-gradient(135deg, #064e3b, #059669); color: white; text-align: center; }
-        .cta-section h2 { font-size: clamp(2rem, 4vw, 3rem); font-weight: 900; margin-bottom: 16px; }
-        .cta-section p { opacity: 0.9; margin-bottom: 40px; font-size: 1.2rem; }
-
-        /* ── FOOTER ──────────────────────────────────── */
-        footer { background: #111827; color: #9ca3af; padding: 40px 0; text-align: center; font-size: 0.9rem; }
-        footer a { color: #10b981; text-decoration: none; }
-
-        /* ── RESPONSIVE ──────────────────────────────── */
-        @media (max-width: 900px) {
-            .stats-grid { grid-template-columns: repeat(2, 1fr); }
-            .steps-grid, .vert-grid, .pricing-grid { grid-template-columns: 1fr; max-width: 500px; margin-left: auto; margin-right: auto; }
-            .hero { min-height: 90vh; }
-            .hero-buttons { flex-direction: column; }
-            .btn { width: 100%; justify-content: center; }
+        .hero-bg { position: absolute; inset: 0; background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%); }
+        .hero-grid { position: absolute; inset: 0; background-image: 
+            linear-gradient(rgba(255,215,0,0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,215,0,0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
         }
-        @media (max-width: 600px) {
-            .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
-            .stat-value { font-size: 1.8rem; }
-            .demo-box { padding: 24px; }
-            .demo-tabs { flex-direction: column; }
+        .hero-content { position: relative; z-index: 2; max-width: 800px; padding: 120px 0 80px; }
+        .hero-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(255,215,0,0.1); border: 1px solid rgba(255,215,0,0.3); color: var(--yellow); padding: 8px 20px; border-radius: 50px; font-size: 0.8rem; font-weight: 600; margin-bottom: 24px; text-transform: uppercase; letter-spacing: 0.1em; }
+        .hero-badge .pulse { width: 8px; height: 8px; background: var(--yellow); border-radius: 50%; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        .hero h1 { font-size: clamp(2.5rem, 7vw, 5rem); font-weight: 900; line-height: 1.05; margin-bottom: 24px; letter-spacing: -0.04em; }
+        .hero h1 .accent { color: var(--yellow); }
+        .hero h1 .sub { display: block; font-size: 0.45em; color: #888; font-weight: 500; margin-top: 12px; letter-spacing: 0; }
+        .hero p { font-size: clamp(1.1rem, 2vw, 1.35rem); color: #aaa; margin-bottom: 40px; max-width: 600px; line-height: 1.7; }
+        .hero-buttons { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 60px; }
+        .btn { display: inline-flex; align-items: center; gap: 10px; padding: 18px 36px; border-radius: 60px; font-size: 1rem; font-weight: 700; text-decoration: none; border: none; cursor: pointer; transition: all 0.3s; text-transform: uppercase; letter-spacing: 0.05em; }
+        .btn:hover { transform: translateY(-3px); }
+        .btn-primary { background: var(--yellow); color: #000; }
+        .btn-primary:hover { background: #FFC107; box-shadow: 0 12px 35px rgba(255,215,0,0.2); }
+        .btn-outline { background: transparent; color: var(--yellow); border: 2px solid rgba(255,215,0,0.3); }
+        .btn-outline:hover { background: rgba(255,215,0,0.1); border-color: var(--yellow); }
+
+        /* ── LIVE TICKER ────────────────────────────── */
+        .ticker { background: var(--gray); border-top: 1px solid rgba(255,215,0,0.1); border-bottom: 1px solid rgba(255,215,0,0.1); padding: 20px 0; overflow: hidden; }
+        .ticker-inner { display: flex; gap: 60px; animation: ticker 30s linear infinite; white-space: nowrap; }
+        @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+        .ticker-item { display: flex; align-items: center; gap: 12px; color: #888; font-size: 0.9rem; }
+        .ticker-item .value { color: var(--yellow); font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+        .ticker-item .label { color: #666; }
+
+        /* ── STATS ──────────────────────────────────── */
+        .stats { padding: 80px 0; background: var(--dark); }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 30px; text-align: center; }
+        .stat { padding: 30px; background: var(--gray); border-radius: 12px; border: 1px solid rgba(255,215,0,0.1); }
+        .stat-value { font-size: 3rem; font-weight: 900; color: var(--yellow); line-height: 1; font-family: 'JetBrains Mono', monospace; }
+        .stat-label { color: #888; font-size: 0.85rem; margin-top: 8px; font-weight: 500; }
+        .stat-unit { font-size: 0.6em; color: #666; }
+
+        /* ── HOW IT WORKS ───────────────────────────── */
+        .how { padding: 100px 0; background: var(--dark); }
+        .section-title { text-align: center; font-size: clamp(2rem, 4vw, 3rem); font-weight: 900; margin-bottom: 16px; }
+        .section-title .accent { color: var(--yellow); }
+        .section-sub { text-align: center; color: #888; font-size: 1.1rem; margin-bottom: 60px; max-width: 600px; margin-left: auto; margin-right: auto; }
+        .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }
+        .step { background: var(--gray); border: 1px solid rgba(255,215,0,0.1); border-radius: 12px; padding: 32px; position: relative; overflow: hidden; }
+        .step::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--yellow); }
+        .step-num { font-size: 0.8rem; color: var(--yellow); font-weight: 700; margin-bottom: 12px; font-family: 'JetBrains Mono', monospace; }
+        .step h3 { font-size: 1.3rem; font-weight: 800; margin-bottom: 12px; color: #fff; }
+        .step p { color: #888; font-size: 0.95rem; line-height: 1.6; }
+
+        /* ── FLEET MAP ──────────────────────────────── */
+        .fleet { padding: 100px 0; background: var(--black); }
+        .fleet-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; margin-top: 60px; }
+        .fleet-card { background: var(--gray); border: 1px solid rgba(255,215,0,0.1); border-radius: 12px; padding: 32px; }
+        .fleet-card h3 { color: var(--yellow); font-size: 1.2rem; margin-bottom: 16px; }
+        .fleet-card .stat-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .fleet-card .stat-row:last-child { border-bottom: none; }
+        .fleet-card .stat-row .label { color: #888; }
+        .fleet-card .stat-row .value { color: #fff; font-weight: 600; font-family: 'JetBrains Mono', monospace; }
+        .comunas { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+        .comuna-tag { background: rgba(255,215,0,0.1); color: var(--yellow); padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 500; }
+        .comuna-tag.active { background: rgba(76,175,80,0.2); color: #4CAF50; border: 1px solid rgba(76,175,80,0.3); }
+
+        /* ── ODOO INTEGRATION ───────────────────────── */
+        .odoo { padding: 100px 0; background: var(--dark); }
+        .odoo-flow { display: flex; align-items: center; justify-content: center; gap: 20px; flex-wrap: wrap; margin-top: 60px; }
+        .odoo-step { background: var(--gray); border: 1px solid rgba(255,215,0,0.1); border-radius: 12px; padding: 24px; text-align: center; min-width: 160px; }
+        .odoo-step .icon { font-size: 2rem; margin-bottom: 8px; }
+        .odoo-step .text { color: #fff; font-weight: 600; font-size: 0.9rem; }
+        .odoo-arrow { color: var(--yellow); font-size: 1.5rem; }
+
+        /* ── CTA ────────────────────────────────────── */
+        .cta { padding: 100px 0; text-align: center; background: var(--black); border-top: 1px solid rgba(255,215,0,0.1); }
+        .cta h2 { font-size: clamp(2rem, 4vw, 3.5rem); font-weight: 900; margin-bottom: 16px; }
+        .cta p { color: #888; font-size: 1.1rem; margin-bottom: 40px; max-width: 500px; margin-left: auto; margin-right: auto; }
+
+        /* ── FOOTER ─────────────────────────────────── */
+        footer { padding: 40px 0; background: var(--gray); border-top: 1px solid rgba(255,215,0,0.1); text-align: center; }
+        footer p { color: #666; font-size: 0.85rem; }
+        footer a { color: var(--yellow); text-decoration: none; }
+
+        /* ── RESPONSIVE ─────────────────────────────── */
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            .hero h1 { font-size: 2.5rem; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .odoo-flow { flex-direction: column; }
+            .odoo-arrow { transform: rotate(90deg); }
         }
     </style>
 </head>
 <body>
 
-<!-- NAV -->
+<!-- ── NAV ──────────────────────────────────────────── -->
 <nav>
     <div class="container">
-        <a href="#" class="logo">Eco<span>Cupon</span></a>
-        <a href="https://odoo.smarterbot.store/pos-self/2?access_token=c8cccd9b281a4e35" class="nav-cta" target="_blank">🛒 PEDIR</a>
+        <a href="/" class="logo">SMARTER<span>DUMPER</span></a>
+        <div class="nav-links">
+            <a href="#como">Cómo Funciona</a>
+            <a href="#flota">Flota</a>
+            <a href="#odoo">Odoo</a>
+            <a href="https://bolt.smarterbot.store/" class="nav-cta">Dashboard →</a>
+        </div>
     </div>
 </nav>
 
-<!-- HERO -->
+<!-- ── HERO ─────────────────────────────────────────── -->
 <section class="hero">
     <div class="hero-bg"></div>
+    <div class="hero-grid"></div>
     <div class="container">
         <div class="hero-content">
-            <div class="hero-badge">♻️ Cashback real por reciclar</div>
-            <h1>Convierte residuos en <span class="accent">dinero</span></h1>
-            <p>Compra, recicla y recibe dinero en tu wallet. La IA valora cada envase y te paga al instante.</p>
+            <div class="hero-badge"><span class="pulse"></span> Santiago → México — Operando</div>
+            <h1>
+                No solo hablamos<br>de datos. <span class="accent">Movemos toneladas.</span>
+                <span class="sub">Con nuestra flota sensorizada, cada movimiento es un evento contable.<br>Si se mueve en la montaña, se factura en Odoo.</span>
+            </h1>
+            <p>Plataforma integral de reciclaje, logística y facturación automática para empresas que mueven residuos a escala industrial.</p>
             <div class="hero-buttons">
-                <a href="https://odoo.smarterbot.store/pos-self/2?access_token=c8cccd9b281a4e35" class="btn btn-primary" target="_blank">🛒 PEDIR AHORA</a>
-                <a href="https://wa.me/56979540471?text=Hola!%20Quiero%20saber%20más%20sobre%20EcoCupon" class="btn btn-outline" target="_blank">📲 WhatsApp</a>
+                <a href="https://bolt.smarterbot.store/" class="btn btn-primary">Ver Dashboard en Vivo</a>
+                <a href="https://app.ecocupon.cl/" class="btn btn-outline">MiniApp QR →</a>
             </div>
         </div>
     </div>
 </section>
 
-<!-- STATS -->
-<section class="stats-bar">
+<!-- ── LIVE TICKER ─────────────────────────────────── -->
+<div class="ticker">
+    <div class="ticker-inner">
+        <div class="ticker-item"><span class="value" id="ticker-tons">76,450</span> <span class="label">Ton. planificadas</span></div>
+        <div class="ticker-item"><span class="value">STGO</span> <span class="label">Santiago, Chile</span></div>
+        <div class="ticker-item"><span class="value">CDMX</span> <span class="label">Ciudad de México</span></div>
+        <div class="ticker-item"><span class="value">LIVE</span> <span class="label">Flota sensorizada</span></div>
+        <div class="ticker-item"><span class="value">ODOO</span> <span class="label">Facturación auto</span></div>
+        <div class="ticker-item"><span class="value">QR</span> <span class="label">Cashback real</span></div>
+        <div class="ticker-item"><span class="value">76,450</span> <span class="label">Ton. planificadas</span></div>
+        <div class="ticker-item"><span class="value">STGO</span> <span class="label">Santiago, Chile</span></div>
+        <div class="ticker-item"><span class="value">CDMX</span> <span class="label">Ciudad de México</span></div>
+        <div class="ticker-item"><span class="value">LIVE</span> <span class="label">Flota sensorizada</span></div>
+        <div class="ticker-item"><span class="value">ODOO</span> <span class="label">Facturación auto</span></div>
+        <div class="ticker-item"><span class="value">QR</span> <span class="label">Cashback real</span></div>
+    </div>
+</div>
+
+<!-- ── STATS ────────────────────────────────────────── -->
+<section class="stats">
     <div class="container">
-        <div class="stats-grid" id="live-stats">
-            <div><div class="stat-value" id="stat-recycles">0</div><div class="stat-label">Reciclajes hoy</div></div>
-            <div><div class="stat-value" id="stat-cashback">$0</div><div class="stat-label">Cashback entregado</div></div>
-            <div><div class="stat-value" id="stat-wallets">0</div><div class="stat-label">Wallets activas</div></div>
-            <div><div class="stat-value" id="stat-items">0</div><div class="stat-label">Tipos de envases</div></div>
+        <div class="stats-grid" id="stats-grid">
+            <!-- Loaded dynamically from BOLT API -->
         </div>
     </div>
 </section>
 
-<!-- HOW IT WORKS -->
-<section class="how">
+<!-- ── HOW IT WORKS ─────────────────────────────────── -->
+<section class="how" id="como">
     <div class="container">
-        <h2 class="section-title">¿Cómo funciona?</h2>
-        <p class="section-sub">3 pasos simples para convertir tus residuos en dinero real</p>
-        <div class="steps-grid">
+        <h2 class="section-title">Si se mueve, <span class="accent">se factura</span></h2>
+        <p class="section-sub">Del pesaje en montaña al DTE en Odoo. Sin intermediarios. Sin errores humanos.</p>
+        <div class="steps">
             <div class="step">
-                <img src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&q=80" alt="Compra" class="step-img">
-                <div class="step-num">1</div>
-                <h3>Compra</h3>
-                <p>Haz tu pedido en el kiosco. Cada producto genera QR de reciclaje automático.</p>
+                <div class="step-num">01 / SENSOR</div>
+                <h3>Pesaje en Tiempo Real</h3>
+                <p>Sensores IoT en cada camión registran peso, material y GPS al instante. Datos crudos → API.</p>
             </div>
             <div class="step">
-                <img src="https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?w=600&q=80" alt="Recicla" class="step-img">
-                <div class="step-num">2</div>
-                <h3>Recicla</h3>
-                <p>Escanea el QR del envase, sube una foto y la IA valida al instante.</p>
+                <div class="step-num">02 / VALIDATE</div>
+                <h3>QR de Trazabilidad</h3>
+                <p>Cada carga genera un QR único. Escaneá en el kiosko y el sistema valida material + peso + origen.</p>
             </div>
             <div class="step">
-                <img src="https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=600&q=80" alt="Recibe dinero" class="step-img">
-                <div class="step-num">3</div>
-                <h3>Recibe dinero</h3>
-                <p>Cashback acreditado en tu wallet. Úsalo en tu próxima compra.</p>
+                <div class="step-num">03 / INVOICE</div>
+                <h3>Facturación Automática</h3>
+                <p>Odoo genera el DTE automáticamente. Peso → Precio → Factura → SII. Sin tocar un teclado.</p>
+            </div>
+            <div class="step">
+                <div class="step-num">04 / CASHBACK</div>
+                <h3>Crédito al Reciclador</h3>
+                <p>El usuario recibe cashback en su wallet. Puede retirarlo o usarlo en compras en el kiosko.</p>
+            </div>
+            <div class="step">
+                <div class="step-num">05 / DASHBOARD</div>
+                <h3>Control Total</h3>
+                <p>Bolt Dashboard muestra toneladas, revenue, conversión y alertas en tiempo real. 24/7.</p>
+            </div>
+            <div class="step">
+                <div class="step-num">06 / SCALE</div>
+                <h3>Multi-País</h3>
+                <p>Chile y México operando con la misma plataforma. Agregá un nuevo país en 48 horas.</p>
             </div>
         </div>
     </div>
 </section>
 
-<!-- VERTICALS -->
-<section class="verticals">
+<!-- ── FLEET ────────────────────────────────────────── -->
+<section class="fleet" id="flota">
     <div class="container">
-        <h2 class="section-title">3 verticales, 1 cerebro</h2>
-        <p class="section-sub">IA que decide el mejor retorno para cada activo</p>
-        <div class="vert-grid">
-            <div class="vert-card">
-                <img src="https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?w=600&q=80" alt="Reciclaje" class="vert-img">
-                <div class="vert-body">
-                    <h3>♻️ Reciclaje</h3>
-                    <p>Convierte envases en cashback real para tus clientes</p>
-                    <div class="vert-flow">Foto → IA valida → $ a wallet</div>
-                    <a href="#demo" class="btn btn-primary">Probar reciclaje</a>
+        <h2 class="section-title">Flota <span class="accent">Sensorizada</span></h2>
+        <p class="section-sub">Cada camión es un nodo IoT. Cada viaje es un evento contable.</p>
+        <div class="fleet-grid">
+            <div class="fleet-card">
+                <h3>🇨🇱 Santiago, Chile</h3>
+                <div class="stat-row"><span class="label">Unidades activas</span><span class="value" id="fleet-cl">12</span></div>
+                <div class="stat-row"><span class="label">Ton. recibidas</span><span class="value" id="tons-cl">48,750</span></div>
+                <div class="stat-row"><span class="label">Kits planificados</span><span class="value">50,000</span></div>
+                <div class="stat-row"><span class="label">Operador</span><span class="value">EcoCupon CL</span></div>
+                <div class="comunas">
+                    <span class="comuna-tag active">Providencia</span>
+                    <span class="comuna-tag active">Las Condes</span>
+                    <span class="comuna-tag active">Santiago Centro</span>
+                    <span class="comuna-tag">Puente Alto</span>
+                    <span class="comuna-tag">Maipú</span>
+                    <span class="comuna-tag">La Florida</span>
+                    <span class="comuna-tag">Ñuñoa</span>
+                    <span class="comuna-tag">San Miguel</span>
+                    <span class="comuna-tag">Vitacura</span>
+                    <span class="comuna-tag">Lo Barnechea</span>
+                    <span class="comuna-tag">Peñalolén</span>
+                    <span class="comuna-tag">La Reina</span>
                 </div>
             </div>
-            <div class="vert-card">
-                <img src="https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=600&q=80" alt="Vehículos" class="vert-img">
-                <div class="vert-body">
-                    <h3>🚗 Vehículos</h3>
-                    <p>Valuación inteligente + decisión comprar/negociar/descartar</p>
-                    <div class="vert-flow">Patente + precio → Scoring → Decisión</div>
-                    <a href="#demo" class="btn btn-primary">Probar vehículo</a>
+            <div class="fleet-card">
+                <h3>🇲🇽 Ciudad de México</h3>
+                <div class="stat-row"><span class="label">Unidades activas</span><span class="value" id="fleet-mx">8</span></div>
+                <div class="stat-row"><span class="label">Ton. recibidas</span><span class="value" id="tons-mx">9,200</span></div>
+                <div class="stat-row"><span class="label">Kits planificados</span><span class="value">10,000</span></div>
+                <div class="stat-row"><span class="label">Operador</span><span class="value">EcoCupon MZA</span></div>
+                <div class="comunas">
+                    <span class="comuna-tag active">Polanco</span>
+                    <span class="comuna-tag active">Coyoacán</span>
+                    <span class="comuna-tag active">Roma Norte</span>
+                    <span class="comuna-tag">Condesa</span>
+                    <span class="comuna-tag">Santa Fe</span>
+                    <span class="comuna-tag">Del Valle</span>
+                    <span class="comuna-tag">Narvarte</span>
+                    <span class="comuna-tag">Benito Juárez</span>
                 </div>
             </div>
-            <div class="vert-card">
-                <img src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600&q=80" alt="Kiosk" class="vert-img">
-                <div class="vert-body">
-                    <h3>🍔 Kiosk</h3>
-                    <p>Kiosco táctil con pagos Flow + QR reciclaje automático</p>
-                    <div class="vert-flow">Compra → QR envase → Cashback</div>
-                    <a href="https://odoo.smarterbot.store/pos-self/2?access_token=c8cccd9b281a4e35" class="btn btn-primary" target="_blank">🛒 PEDIR</a>
-                </div>
+            <div class="fleet-card">
+                <h3>🦞 SmarterOS Core</h3>
+                <div class="stat-row"><span class="label">API Status</span><span class="value" style="color:#4CAF50">ONLINE</span></div>
+                <div class="stat-row"><span class="label">Reglas activas</span><span class="value">50</span></div>
+                <div class="stat-row"><span class="label">Contenedores</span><span class="value">22</span></div>
+                <div class="stat-row"><span class="label">Uptime</span><span class="value" style="color:#4CAF50">99.9%</span></div>
             </div>
         </div>
     </div>
 </section>
 
-<!-- DEMO -->
-<section class="demo" id="demo">
+<!-- ── ODOO FLOW ───────────────────────────────────── -->
+<section class="odoo" id="odoo">
     <div class="container">
-        <h2 class="section-title" style="color:white">🧪 Pruébalo ahora</h2>
-        <p class="section-sub" style="color:rgba(255,255,255,0.8)">La IA decide en tiempo real — sin registro</p>
-        <div class="demo-box">
-            <div class="demo-tabs">
-                <button class="demo-tab active" onclick="selectTab('recycle')">♻️ Reciclaje</button>
-                <button class="demo-tab" onclick="selectTab('vehicle')">🚗 Vehículo</button>
-                <button class="demo-tab" onclick="selectTab('kiosk')">🍔 Kiosk</button>
-            </div>
-
-            <div class="demo-form active" id="form-recycle">
-                <input type="text" id="recycle-item" placeholder="Tipo de envase (ej: pet_500, lata, vidrio_750)" value="pet_500">
-                <input type="tel" id="recycle-phone" placeholder="Teléfono (ej: 56912345678)" value="56912345678">
-                <button class="btn" onclick="runDemo('recycle')">🧠 Analizar envase</button>
-            </div>
-
-            <div class="demo-form" id="form-vehicle">
-                <input type="text" id="vehicle-marca" placeholder="Marca (ej: Toyota)" value="Toyota">
-                <input type="text" id="vehicle-modelo" placeholder="Modelo (ej: Yaris)" value="Yaris">
-                <input type="number" id="vehicle-ano" placeholder="Año" value="2019">
-                <input type="number" id="vehicle-precio" placeholder="Precio publicado (CLP)" value="7500000">
-                <button class="btn" onclick="runDemo('vehicle')">🔍 Analizar vehículo</button>
-            </div>
-
-            <div class="demo-form" id="form-kiosk">
-                <input type="number" id="kiosk-order" placeholder="N° Orden" value="42">
-                <input type="text" id="kiosk-items" placeholder="Items (separados por coma)" value="Sixpack cerveza, Hamburguesa combo, Bebida 1.5L">
-                <button class="btn" onclick="runDemo('kiosk')">🎫 Generar QR envases</button>
-            </div>
-
-            <div class="demo-result" id="demo-result">
-                <h4 id="result-title">Resultado</h4>
-                <pre id="result-json"></pre>
-            </div>
+        <h2 class="section-title">De la montaña al <span class="accent">DTE</span></h2>
+        <p class="section-sub">Flujo completo de facturación automática integrado con Odoo 19</p>
+        <div class="odoo-flow">
+            <div class="odoo-step"><div class="icon">⚖️</div><div class="text">Pesaje IoT</div></div>
+            <div class="odoo-arrow">→</div>
+            <div class="odoo-step"><div class="icon">📱</div><div class="text">QR Escaneado</div></div>
+            <div class="odoo-arrow">→</div>
+            <div class="odoo-step"><div class="icon">🤖</div><div class="text">n8n Valida</div></div>
+            <div class="odoo-arrow">→</div>
+            <div class="odoo-step"><div class="icon">📦</div><div class="text">Odoo Registra</div></div>
+            <div class="odoo-arrow">→</div>
+            <div class="odoo-step"><div class="icon">📄</div><div class="text">DTE al SII</div></div>
+            <div class="odoo-arrow">→</div>
+            <div class="odoo-step"><div class="icon">💰</div><div class="text">Cashback</div></div>
         </div>
     </div>
 </section>
 
-<!-- PRICING -->
-<section class="pricing" id="pricing">
+<!-- ── CTA ──────────────────────────────────────────── -->
+<section class="cta">
     <div class="container">
-        <h2 class="section-title">Planes</h2>
-        <p class="section-sub">Instalación en 24 horas. Sin contratos largos.</p>
-        <div class="pricing-grid">
-            <div class="price-card">
-                <h3>Básico</h3>
-                <div class="price">$99.900<span>/mes</span></div>
-                <ul>
-                    <li>Kiosco táctil</li>
-                    <li>Pagos Flow.cl</li>
-                    <li>Dashboard básico</li>
-                    <li>Soporte email</li>
-                </ul>
-                <a href="https://wa.me/56979540471?text=Hola!%20Me%20interesa%20el%20plan%20Básico%20de%20EcoCupon" class="btn btn-outline" style="color:#10b981;border-color:#10b981" target="_blank">Empezar</a>
-            </div>
-            <div class="price-card featured">
-                <h3>Reciclaje</h3>
-                <div class="price">$199.900<span>/mes</span></div>
-                <ul>
-                    <li>Todo lo del Básico</li>
-                    <li>Cashback por reciclaje</li>
-                    <li>Wallet clientes</li>
-                    <li>Reportes REP</li>
-                    <li>Anti-fraud AI</li>
-                </ul>
-                <a href="https://wa.me/56979540471?text=Hola!%20Me%20interesa%20el%20plan%20Reciclaje%20de%20EcoCupon" class="btn btn-primary" target="_blank">Probar 7 días gratis</a>
-            </div>
-            <div class="price-card">
-                <h3>Enterprise</h3>
-                <div class="price">$399.900<span>/mes</span></div>
-                <ul>
-                    <li>Todo lo del Reciclaje</li>
-                    <li>Multi-sucursal</li>
-                    <li>Integración ERP</li>
-                    <li>Soporte prioritario</li>
-                    <li>API completa</li>
-                </ul>
-                <a href="https://wa.me/56979540471?text=Hola!%20Me%20interesa%20el%20plan%20Enterprise%20de%20EcoCupon" class="btn btn-outline" style="color:#10b981;border-color:#10b981" target="_blank">Agendar demo</a>
-            </div>
+        <h2>Empezá a mover <span style="color:var(--yellow)">toneladas</span> hoy</h2>
+        <p>Plataforma lista. Flota sensorizada. Facturación automática. Solo falta tu carga.</p>
+        <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;">
+            <a href="https://bolt.smarterbot.store/" class="btn btn-primary">Ver Dashboard en Vivo</a>
+            <a href="https://n8n.smarterbot.store/" class="btn btn-outline">Automatizaciones n8n</a>
         </div>
     </div>
 </section>
 
-<!-- CTA -->
-<section class="cta-section">
-    <div class="container">
-        <h2>¿Listo para convertir residuos en dinero?</h2>
-        <p>Te instalo esto en tu negocio en 24 horas</p>
-        <a href="https://wa.me/56979540471?text=Hola!%20Quiero%20instalar%20EcoCupon%20en%20mi%20negocio" class="btn btn-whatsapp" target="_blank">📲 Escribir por WhatsApp</a>
-    </div>
-</section>
-
-<!-- FOOTER -->
+<!-- ── FOOTER ──────────────────────────────────────── -->
 <footer>
     <div class="container">
-        <p>© 2026 EcoCupon — Smarter SPA | <a href="https://github.com/ecocuponcl/food.ecocupon.cl" target="_blank">GitHub</a> | <a href="https://agent.food.ecocupon.cl/docs" target="_blank">API Docs</a></p>
+        <p>🦞 <strong>Smarter Dumper</strong> · EcoCupon Chile · Santiago ↔ Ciudad de México</p>
+        <p style="margin-top:8px;">Powered by <a href="https://os.smarterbot.store">SmarterOS v6.0</a> · <a href="https://bolt.smarterbot.store/">Bolt Dashboard</a> · <a href="https://app.ecocupon.cl/">MiniApp QR</a></p>
     </div>
 </footer>
 
 <script>
-    const AGENT_URL = window.location.hostname === 'localhost' ? 'http://localhost:9000' : 'https://agent.food.ecocupon.cl';
-
-    function selectTab(tab) {
-        document.querySelectorAll('.demo-tab').forEach(t => t.classList.remove('active'));
-        document.querySelectorAll('.demo-form').forEach(f => f.classList.remove('active'));
-        document.getElementById('demo-result').classList.remove('show');
-        const tabs = { recycle: 0, vehicle: 1, kiosk: 2 };
-        document.querySelectorAll('.demo-tab')[tabs[tab]].classList.add('active');
-        document.getElementById('form-' + tab).classList.add('active');
-    }
-
-    async function runDemo(vertical) {
-        const resultEl = document.getElementById('demo-result');
-        const titleEl = document.getElementById('result-title');
-        const jsonEl = document.getElementById('result-json');
-        titleEl.textContent = '⏳ Analizando...';
-        jsonEl.textContent = '';
-        resultEl.classList.add('show');
-
-        let payload = { vertical: vertical.toUpperCase(), intent: 'EVALUATE', data: {} };
-        if (vertical === 'recycle') {
-            payload.data = { item: document.getElementById('recycle-item').value, phone: document.getElementById('recycle-phone').value };
-        } else if (vertical === 'vehicle') {
-            payload.data = {
-                marca: document.getElementById('vehicle-marca').value,
-                modelo: document.getElementById('vehicle-modelo').value,
-                ano: parseInt(document.getElementById('vehicle-ano').value),
-                precio: parseInt(document.getElementById('vehicle-precio').value)
-            };
-        } else if (vertical === 'kiosk') {
-            payload.data = {
-                order_id: parseInt(document.getElementById('kiosk-order').value),
-                items: document.getElementById('kiosk-items').value.split(',').map(s => s.trim())
-            };
-        }
-
-        try {
-            const resp = await fetch(AGENT_URL + '/decide', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            const result = await resp.json();
-            titleEl.textContent = '✅ Resultado — ' + result.decision.toUpperCase();
-            jsonEl.textContent = JSON.stringify(result, null, 2);
-        } catch (err) {
-            titleEl.textContent = '❌ Error';
-            jsonEl.textContent = err.message;
-        }
-    }
-
-    // Load live stats
+    // ── Load stats from BOLT API ──────────────────────────
     async function loadStats() {
         try {
-            const resp = await fetch(AGENT_URL + '/recycle/stats');
-            const stats = await resp.json();
-            document.getElementById('stat-recycles').textContent = stats.total_recycles || 0;
-            document.getElementById('stat-cashback').textContent = '$' + (stats.total_cashback_clp || 0).toLocaleString('es-CL');
-            document.getElementById('stat-wallets').textContent = stats.active_wallets || 0;
-            document.getElementById('stat-items').textContent = Object.keys(stats.items_recycled || {}).length;
-        } catch (e) {}
+            const res = await fetch('/api/inventory/ecocupon_cl/remaining');
+            if (!res.ok) throw new Error('API not available');
+            const data = await res.json();
+            
+            const statsGrid = document.getElementById('stats-grid');
+            const products = data.products || [];
+            
+            let totalPlanned = 0;
+            let totalReceived = 0;
+            products.forEach(p => {
+                totalPlanned += p.total;
+                totalReceived += p.remaining;
+            });
+            
+            statsGrid.innerHTML = `
+                <div class="stat"><div class="stat-value">${totalReceived.toLocaleString()}</div><div class="stat-label">Toneladas Recibidas</div></div>
+                <div class="stat"><div class="stat-value">${totalPlanned.toLocaleString()}</div><div class="stat-label">Kits Planificados</div></div>
+                <div class="stat"><div class="stat-value">2</div><div class="stat-label">Países Activos</div></div>
+                <div class="stat"><div class="stat-value">50</div><div class="stat-label">Reglas n8n</div></div>
+            `;
+            
+            // Update fleet cards
+            if (products[0]) {
+                document.getElementById('tons-cl').textContent = products[0].remaining.toLocaleString();
+            }
+            if (products[1]) {
+                document.getElementById('tons-mx').textContent = products[1].remaining.toLocaleString();
+            }
+        } catch(e) {
+            document.getElementById('stats-grid').innerHTML = `
+                <div class="stat"><div class="stat-value">76,450</div><div class="stat-label">Ton. Planificadas</div></div>
+                <div class="stat"><div class="stat-value">2</div><div class="stat-label">Países Activos</div></div>
+                <div class="stat"><div class="stat-value">50</div><div class="stat-label">Reglas Activas</div></div>
+                <div class="stat"><div class="stat-value">22</div><div class="stat-label">Contenedores</div></div>
+            `;
+        }
     }
     loadStats();
     setInterval(loadStats, 30000);
