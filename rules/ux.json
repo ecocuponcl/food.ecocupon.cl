@@ -2,15 +2,15 @@
   {
     "id": "UX_01",
     "category": "ux",
-    "name": "máximo 5 estados por flujo",
-    "rule": "un flujo con más de 5 estados es inutilizable",
+    "name": "m\u00e1ximo 5 estados por flujo",
+    "rule": "un flujo con m\u00e1s de 5 estados es inutilizable",
     "check": "workflow.states.length <= 5",
     "action": "warn",
     "severity": "medium",
     "weight": 0.05,
     "enabled": true,
     "phase": "post",
-    "description": "Complejidad mata adopción"
+    "description": "Complejidad mata adopci\u00f3n"
   },
   {
     "id": "UX_02",
@@ -23,14 +23,14 @@
     "weight": 0.05,
     "enabled": true,
     "phase": "post",
-    "description": "Si no se ve quién, nadie lo hace"
+    "description": "Si no se ve qui\u00e9n, nadie lo hace"
   },
   {
     "id": "UX_03",
     "category": "ux",
     "name": "progreso visible",
     "rule": "el usuario debe ver progreso en tiempo real",
-    "check": "output.progress_visible == true",
+    "check": "progress_visible == true",
     "action": "warn",
     "severity": "medium",
     "weight": 0.04,
@@ -49,14 +49,14 @@
     "weight": 0.07,
     "enabled": true,
     "phase": "post",
-    "description": "3s es el límite de paciencia humana"
+    "description": "3s es el l\u00edmite de paciencia humana"
   },
   {
     "id": "UX_05",
     "category": "ux",
-    "name": "confirmación antes de destructivo",
-    "rule": "acciones destructivas requieren confirmación explícita",
-    "check": "action.destructive == true → confirmed == true",
+    "name": "confirmaci\u00f3n antes de destructivo",
+    "rule": "acciones destructivas requieren confirmaci\u00f3n expl\u00edcita",
+    "check": "action.destructive == true \u2192 confirmed == true",
     "action": "require_confirmation",
     "severity": "critical",
     "weight": 0.08,
@@ -69,19 +69,19 @@
     "category": "ux",
     "name": "texto en idioma del usuario",
     "rule": "output debe estar en el idioma detectado del usuario",
-    "check": "output.language == user.detected_language",
+    "check": "language == user.detected_language",
     "action": "warn",
     "severity": "low",
     "weight": 0.03,
     "enabled": true,
     "phase": "post",
-    "description": "Español para Chile, inglés para dev"
+    "description": "Espa\u00f1ol para Chile, ingl\u00e9s para dev"
   },
   {
     "id": "UX_07",
     "category": "ux",
-    "name": "máximo 3 opciones por decisión",
-    "rule": "parálisis por análisis: máximo 3 opciones",
+    "name": "m\u00e1ximo 3 opciones por decisi\u00f3n",
+    "rule": "par\u00e1lisis por an\u00e1lisis: m\u00e1ximo 3 opciones",
     "check": "decision.options.length <= 3",
     "action": "warn",
     "severity": "medium",
@@ -120,13 +120,13 @@
     "id": "UX_10",
     "category": "ux",
     "name": "mobile responsive",
-    "rule": "todo output debe ser legible en móvil",
-    "check": "output.mobile_friendly == true",
+    "rule": "todo output debe ser legible en m\u00f3vil",
+    "check": "mobile_friendly == true",
     "action": "warn",
     "severity": "medium",
     "weight": 0.05,
     "enabled": true,
     "phase": "post",
-    "description": "50%+ del tráfico es móvil"
+    "description": "50%+ del tr\u00e1fico es m\u00f3vil"
   }
 ]

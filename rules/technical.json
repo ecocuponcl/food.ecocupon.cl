@@ -3,8 +3,8 @@
     "id": "TECH_01",
     "category": "technical",
     "name": "input estructurado usa API",
-    "rule": "si input es estructurado → usar API no texto libre",
-    "check": "input.type == 'structured' → use_api == true",
+    "rule": "si input es estructurado \u2192 usar API no texto libre",
+    "check": "type == 'structured' \u2192 use_api == true",
     "action": "force_api",
     "severity": "high",
     "weight": 0.07,
@@ -16,27 +16,27 @@
     "id": "TECH_02",
     "category": "technical",
     "name": "no procesos manuales repetitivos",
-    "rule": "tarea que se repite > 5 veces → flag para automatización",
+    "rule": "tarea que se repite > 5 veces \u2192 flag para automatizaci\u00f3n",
     "check": "task.repetition_count > 5",
     "action": "flag_for_automation",
     "severity": "medium",
     "weight": 0.05,
     "enabled": true,
     "phase": "post",
-    "description": "La repetición es señal de automatización necesaria"
+    "description": "La repetici\u00f3n es se\u00f1al de automatizaci\u00f3n necesaria"
   },
   {
     "id": "TECH_03",
     "category": "technical",
-    "name": "validación de input obligatoria",
+    "name": "validaci\u00f3n de input obligatoria",
     "rule": "todo input debe validarse antes de procesar",
-    "check": "input.validated == true",
+    "check": "validated == true",
     "action": "reject",
     "severity": "critical",
     "weight": 0.08,
     "enabled": true,
     "phase": "pre",
-    "description": "Sin validación, garbage in = garbage out"
+    "description": "Sin validaci\u00f3n, garbage in = garbage out"
   },
   {
     "id": "TECH_04",
@@ -62,14 +62,14 @@
     "weight": 0.05,
     "enabled": true,
     "phase": "post",
-    "description": "Sin backoff, bombardeamos al servicio caído"
+    "description": "Sin backoff, bombardeamos al servicio ca\u00eddo"
   },
   {
     "id": "TECH_06",
     "category": "technical",
     "name": "API response cache",
     "rule": "respuestas de API frecuentes deben cachearse",
-    "check": "call.cacheable == true → cached == true",
+    "check": "call.cacheable == true \u2192 cached == true",
     "action": "suggest_automation",
     "severity": "low",
     "weight": 0.03,
@@ -81,7 +81,7 @@
     "id": "TECH_07",
     "category": "technical",
     "name": "error handling definido",
-    "rule": "todo flujo debe manejar errores explícitamente",
+    "rule": "todo flujo debe manejar errores expl\u00edcitamente",
     "check": "flow.error_handler != null",
     "action": "reject",
     "severity": "high",
@@ -98,7 +98,7 @@
     "check": "log.contains_sensitive_data == false",
     "action": "reject",
     "severity": "critical",
-    "weight": 0.10,
+    "weight": 0.1,
     "enabled": true,
     "phase": "post",
     "description": "Seguridad primero: nunca loggear secretos"
@@ -107,7 +107,7 @@
     "id": "TECH_09",
     "category": "technical",
     "name": "latencia < 200ms para rules",
-    "rule": "evaluación de reglas no debe agregar > 200ms",
+    "rule": "evaluaci\u00f3n de reglas no debe agregar > 200ms",
     "check": "metrics.rule_evaluation_ms < 200",
     "action": "warn",
     "severity": "medium",
@@ -120,13 +120,13 @@
     "id": "TECH_10",
     "category": "technical",
     "name": "health check de agentes",
-    "rule": "antes de delegar → verificar agente destino está activo",
+    "rule": "antes de delegar \u2192 verificar agente destino est\u00e1 activo",
     "check": "target_agent.status == 'active'",
     "action": "require_confirmation",
     "severity": "high",
     "weight": 0.07,
     "enabled": true,
     "phase": "pre",
-    "description": "No delegar a agente caído"
+    "description": "No delegar a agente ca\u00eddo"
   }
 ]
