@@ -59,7 +59,7 @@
     "check": "workflow.states != null && workflow.states.length >= 2",
     "action": "reject",
     "severity": "high",
-    "weight": 0.063,
+    "weight": 0.057,
     "enabled": true,
     "phase": "post",
     "description": "Sin estados no hay workflow"
@@ -72,7 +72,7 @@
     "check": "task.owner != null",
     "action": "reject",
     "severity": "high",
-    "weight": 0.063,
+    "weight": 0.057,
     "enabled": true,
     "phase": "post",
     "description": "Sin owner, la tarea no existe"
@@ -98,7 +98,7 @@
     "check": "deploy.reviewed == true",
     "action": "require_confirmation",
     "severity": "high",
-    "weight": 0.063,
+    "weight": 0.057,
     "enabled": true,
     "phase": "post",
     "description": "Nada va a prod sin review"
@@ -124,7 +124,7 @@
     "check": "execution.log_created == true",
     "action": "reject",
     "severity": "high",
-    "weight": 0.063,
+    "weight": 0.057,
     "enabled": true,
     "phase": "post",
     "description": "Sin log no hay auditor\u00eda"
@@ -163,7 +163,7 @@
     "check": "backup.today_exists == true && backup.verified == true",
     "action": "flag_for_review",
     "severity": "high",
-    "weight": 0.063,
+    "weight": 0.057,
     "enabled": true,
     "phase": "pre",
     "description": "Sin backup verificable, no operamos"
