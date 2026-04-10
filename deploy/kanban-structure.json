@@ -1,0 +1,161 @@
+{
+  "board": {
+    "title": "SmarterOS Revenue Pipeline",
+    "description": "Lead → Cotización → Pago → Activo — Pipeline completo de facturación SmarterOS + OpenClaw",
+    "properties": {
+      "score": {"name": "Score", "type": "number", "options": []},
+      "product": {"name": "Producto", "type": "select", "options": [
+        {"id": "clawbot", "value": "CLAWBOT Kiosk", "color": "propColorRed"},
+        {"id": "hosting", "value": "Hosting SmarterOS", "color": "propColorBlue"},
+        {"id": "kiosk", "value": "Kiosk Setup", "color": "propColorGreen"},
+        {"id": "subscription", "value": "SmarterOS Subscription", "color": "propColorPurple"},
+        {"id": "openclaw", "value": "OpenClaw Agent", "color": "propColorOrange"}
+      ]},
+      "plan": {"name": "Plan", "type": "select", "options": [
+        {"id": "starter", "value": "Starter (8.99€/mes)", "color": "propColorBlue"},
+        {"id": "annual", "value": "Annual (6.99€/mes)", "color": "propColorGreen"},
+        {"id": "biennial", "value": "Biennial (6.99€/mes)", "color": "propColorPurple"}
+      ]},
+      "price_uf": {"name": "Precio UF", "type": "number"},
+      "price_clp": {"name": "Precio CLP", "type": "number"},
+      "action": {"name": "Accion", "type": "select", "options": [
+        {"id": "quote", "value": "Enviar cotizacion", "color": "propColorYellow"},
+        {"id": "paylink", "value": "Enviar link pago", "color": "propColorGreen"},
+        {"id": "activate", "value": "Activar servicio", "color": "propColorPurple"},
+        {"id": "close", "value": "Cerrar agresivo", "color": "propColorRed"}
+      ]},
+      "paid": {"name": "Pagado", "type": "checkbox"},
+      "telegram_chat": {"name": "Telegram Chat ID", "type": "text"}
+    }
+  },
+  "columns": [
+    {
+      "title": "🔵 Lead Nuevo",
+      "description": "Lead entrante por webhook, Telegram o scraping",
+      "trigger": "new_lead",
+      "color": "propColorBlue",
+      "actions": ["score_lead", "send_welcome"]
+    },
+    {
+      "title": "🟡 Cotizado",
+      "description": "Cotizacion enviada con precio en UF + CLP",
+      "trigger": "quote_sent",
+      "color": "propColorYellow",
+      "actions": ["send_payment_link", "start_followup"]
+    },
+    {
+      "title": "🟠 Link Enviado",
+      "description": "Link de pago enviado via Telegram/Email",
+      "trigger": "payment_link_sent",
+      "color": "propColorOrange",
+      "actions": ["wait_payment", "reminder_24h"]
+    },
+    {
+      "title": "✅ Pagado",
+      "description": "Pago confirmado via MercadoPago/Flow.cl",
+      "trigger": "payment_confirmed",
+      "color": "propColorGreen",
+      "actions": ["create_invoice", "activate_service", "send_confirmation"]
+    },
+    {
+      "title": "🟢 Activo",
+      "description": "Servicio activado y operando",
+      "trigger": "service_active",
+      "color": "propColorPurple",
+      "actions": ["send_welcome_kit", "schedule_checkin"]
+    },
+    {
+      "title": "❌ Perdido",
+      "description": "Lead perdido — nurture sequence",
+      "trigger": "lead_lost",
+      "color": "propColorGray",
+      "actions": ["nurture_sequence", "recheck_30d"]
+    }
+  ],
+  "pricing": {
+    "uf_rate_clp": 38000,
+    "eur_clp": 950,
+    "plans": [
+      {
+        "name": "Starter Mensual",
+        "eur": 8.99,
+        "clp": 8540,
+        "uf": 0.22,
+        "period": "mes",
+        "products": ["SmarterOS Base", "OpenClaw Agent", "n8n Workflows"]
+      },
+      {
+        "name": "Starter Anual",
+        "eur": 6.99,
+        "clp": 6640,
+        "uf": 0.17,
+        "period": "mes",
+        "total_uf": 2.09,
+        "products": ["SmarterOS Base", "OpenClaw Agent", "n8n Workflows", "Soporte priority"]
+      },
+      {
+        "name": "Starter Bianual",
+        "eur": 6.99,
+        "clp": 6640,
+        "uf": 0.17,
+        "period": "mes",
+        "total_uf": 4.18,
+        "products": ["SmarterOS Base", "OpenClaw Agent", "n8n Workflows", "Soporte priority", "Setup incluido"]
+      },
+      {
+        "name": "CLAWBOT Kiosk",
+        "setup_uf": 25,
+        "monthly_uf": 5,
+        "clp_setup": 950000,
+        "clp_monthly": 190000,
+        "products": ["Kiosk hardware", "Software CLAWBOT", "Integracion Odoo", "Soporte 24/7"]
+      },
+      {
+        "name": "Hosting SmarterOS",
+        "setup_uf": 5,
+        "monthly_uf": 2,
+        "clp_setup": 190000,
+        "clp_monthly": 76000,
+        "products": ["Infraestructura cloud", "Monitoreo 24/7", "Backups diarios", "SSL managed"]
+      },
+      {
+        "name": "Kiosk Setup",
+        "setup_uf": 15,
+        "monthly_uf": 3,
+        "clp_setup": 570000,
+        "clp_monthly": 114000,
+        "products": ["Configuracion kiosko", "Integracion pagos", "Dashboard custom", "Capacitacion"]
+      },
+      {
+        "name": "SmarterOS Subscription",
+        "monthly_uf": 10,
+        "clp_monthly": 380000,
+        "products": ["Plataforma completa", "Todos los agentes", "API access", "Analytics", "Soporte premium"]
+      },
+      {
+        "name": "OpenClaw Agent",
+        "monthly_uf": 3,
+        "clp_monthly": 114000,
+        "products": ["Agente IA personalizado", "Integracion Telegram", "Webhooks custom", "Fine-tuning mensual"]
+      }
+    ]
+  },
+  "n8n_triggers": {
+    "card_created": {
+      "webhook": "https://n8n.smarterbot.store/webhook/focalboard-card",
+      "action": "send_quote_message"
+    },
+    "card_moved_to_quoted": {
+      "webhook": "https://n8n.smarterbot.store/webhook/card-quoted",
+      "action": "send_payment_link"
+    },
+    "card_moved_to_paid": {
+      "webhook": "https://n8n.smarterbot.store/webhook/card-paid",
+      "action": "activate_service"
+    },
+    "payment_webhook": {
+      "url": "https://n8n.smarterbot.store/webhook/payment-confirmed",
+      "action": "move_card_to_paid"
+    }
+  }
+}
