@@ -1,0 +1,155 @@
+#!/usr/bin/env python3
+"""
+n8n Workflow: Telegram → LLM → Cotización CLAWBOT → Email
+"""
+import json, uuid
+
+WORKFLOW = {
+    "name": "WF-EMAIL-01 — Telegram CLAWBOT Cotización → Email",
+    "nodes": [
+        {
+            "id": "telegram-command",
+            "name": "Telegram: Comando /cotizar",
+            "type": "n8n-nodes-base.telegramTrigger",
+            "typeVersion": 1.1,
+            "parameters": {
+                "updates": ["message"],
+                "additionalFields": {
+                    "commands": [
+                        {"command": "cotizar", "description": "Cotizar CLAWBOT Kiosk"}
+                    ]
+                }
+            },
+            "position": [240, 300]
+        },
+        {
+            "id": "parse-command",
+            "name": "Parsear Comando",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "parameters": {
+                "jsCode": """// Parse Telegram message
+const msg = $json.message || {};
+const text = msg.text || "";
+const chatId = msg.chat.id;
+const userName = msg.from.first_name + " " + (msg.from.last_name || "");
+const userId = msg.from.id;
+
+// Extract product from command: /cotizar CLAWBOT
+const parts = text.split(" ");
+const product = (parts[1] || "CLAWBOT").toUpperCase();
+
+// Pricing
+const prices = {
+    "CLAWBOT": {setup: 950000, monthly: 190000, setup_uf: 25, monthly_uf: 5},
+    "HOSTING": {setup: 190000, monthly: 76000, setup_uf: 5, monthly_uf: 2},
+    "KIOSK": {setup: 570000, monthly: 114000, setup_uf: 15, monthly_uf: 3},
+    "SUBSCRIPTION": {setup: 0, monthly: 380000, setup_uf: 0, monthly_uf: 10},
+    "OPENCLAW": {setup: 0, monthly: 114000, setup_uf: 0, monthly_uf: 3},
+};
+
+const p = prices[product] || prices["CLAWBOT"];
+
+return [{
+    json: {
+        chat_id: chatId,
+        user_name: userName,
+        user_id: userId,
+        product: product,
+        setup_clp: p.setup,
+        monthly_clp: p.monthly,
+        setup_uf: p.setup_uf,
+        monthly_uf: p.monthly_uf,
+        total_setup: "$" + p.setup.toLocaleString("es-CL"),
+        total_monthly: "$" + p.monthly.toLocaleString("es-CL") + "/mes"
+    }
+}];"""
+            },
+            "position": [460, 300]
+        },
+        {
+            "id": "call-llm",
+            "name": "LLM: Generar Respuesta Venta",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.2,
+            "parameters": {
+                "method": "POST",
+                "url": "https://llm.smarterbot.store/ai/qwen",
+                "sendHeaders": true,
+                "headerParameters": {
+                    "parameters": [
+                        {"name": "Content-Type", "value": "application/json"},
+                        {"name": "Authorization", "value": "Bearer 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"}
+                    ]
+                },
+                "sendBody": true,
+                "specifyBody": "json",
+                "jsonBody": "={\"model\":\"qwen/qwen-2.5-72b-instruct\",\"messages\":[{\"role\":\"system\",\"content\":\"Eres un vendedor experto de SmarterOS. Productos: CLAWBOT Kiosk ($950k setup + $190k/mes), Hosting ($190k setup + $76k/mes), SmarterOS Sub ($380k/mes), OpenClaw ($114k/mes). Responde en español, tono profesional pero cercano. Incluye siempre: precio, que incluye, cupón MECANICO15 (15% OFF), y pregunta de cierre.\"},{\"role\":\"user\",\"content\":\"Usuario: \" + $('Parsear Comando').item.json.user_name + \" quiere cotizar: \" + $('Parsear Comando').item.json.product + \" Setup: \" + $('Parsear Comando').item.json.total_setup + \" Mensual: \" + $('Parsear Comando').item.json.total_monthly}]}",
+                "options": {"timeout": 30000}
+            },
+            "position": [680, 300]
+        },
+        {
+            "id": "send-telegram-response",
+            "name": "Telegram: Enviar Cotización",
+            "type": "n8n-nodes-base.telegram",
+            "typeVersion": 1.2,
+            "parameters": {
+                "chatId": "={{ $('Parsear Comando').item.json.chat_id }}",
+                "text": "=️ *COTIZACIÓN {{ $('Parsear Comando').item.json.product }}*\n\nHola {{ $('Parsear Comando').item.json.user_name }},\n\nAquí tu cotización:\n\n📦 Producto: {{ $('Parsear Comando').item.json.product }}\n🔧 Setup: {{ $('Parsear Comando').item.json.setup_uf }} UF ({{ $('Parsear Comando').item.json.total_setup }} CLP)\n📅 Mensual: {{ $('Parsear Comando').item.json.monthly_uf }} UF ({{ $('Parsear Comando').item.json.total_monthly }} CLP)\n\n✅ Incluye:\n• Hardware + Software completo\n• Integración Odoo ERP\n• Automatización n8n\n• IA OpenClaw\n• Soporte técnico 24/7\n\n🎁 Cupón: MECANICO15 (15% OFF)\n\n💰 Total setup con cupón: ${{ Math.round($('Parsear Comando').item.json.setup_clp * 0.85).toLocaleString(\"es-CL\") }}\n\n🔗 Pagar ahora: https://odoo.ecocupon.cl/web/login\n\n¿Te interesa? Responde SI para coordinar instalación.",
+                "additionalFields": {
+                    "parse_mode": "Markdown"
+                }
+            },
+            "position": [900, 200]
+        },
+        {
+            "id": "send-email",
+            "name": "Email: Enviar Cotización HTML",
+            "type": "n8n-nodes-base.sendGrid",
+            "typeVersion": 1,
+            "parameters": {
+                "fromEmail": "noreply@smarterbot.cl",
+                "toEmail": "={{ $('Parsear Comando').item.json.user_id }}@telegram.smarterbot.cl",
+                "subject": "=️ Tu Cotización {{ $('Parsear Comando').item.json.product }} - SmarterOS",
+                "emailType": "text",
+                "message": "=Hola {{ $('Parsear Comando').item.json.user_name }},\n\nAquí tu cotización SmarterOS:\n\nProducto: {{ $('Parsear Comando').item.json.product }}\nSetup: {{ $('Parsear Comando').item.json.total_setup }}\nMensual: {{ $('Parsear Comando').item.json.total_monthly }}\n\nCupón: MECANICO15 (15% OFF)\n\nPagar: https://odoo.ecocupon.cl/web/login"
+            },
+            "position": [900, 400]
+        },
+        {
+            "id": "odoo-lead",
+            "name": "Odoo: Crear Lead",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.2,
+            "parameters": {
+                "method": "POST",
+                "url": "http://127.0.0.1:8070/jsonrpc",
+                "sendHeaders": true,
+                "headerParameters": {
+                    "parameters": [
+                        {"name": "Content-Type", "value": "application/json"}
+                    ]
+                },
+                "sendBody": true,
+                "specifyBody": "json",
+                "jsonBody": "={\"jsonrpc\":\"2.0\",\"method\":\"call\",\"params\":{\"service\":\"object\",\"method\":\"execute_kw\",\"args\":[\"food_kiosk\",2,\"SmarterOS2026!\",\"crm.lead\",\"create\",[{\"name\":\"Telegram: \" + $('Parsear Comando').item.json.user_name + \" - \" + $('Parsear Comando').item.json.product,\"phone\":\"Telegram ID: \" + $('Parsear Comando').item.json.user_id,\"description\":\"Cotización \" + $('Parsear Comando').item.json.product + \" Setup: \" + $('Parsear Comando').item.json.total_setup,\"expected_revenue\": \" + $('Parsear Comando').item.json.setup_clp + \",\"priority\":\"3\"}]]}}",
+                "options": {"timeout": 15000}
+            },
+            "position": [1120, 300]
+        }
+    ],
+    "connections": {
+        "Telegram: Comando /cotizar": {"main": [[{"node": "Parsear Comando", "type": "main", "index": 0}]]},
+        "Parsear Comando": {"main": [[{"node": "LLM: Generar Respuesta Venta", "type": "main", "index": 0}]]},
+        "LLM: Generar Respuesta Venta": {"main": [
+            [{"node": "Telegram: Enviar Cotización", "type": "main", "index": 0}],
+            [{"node": "Email: Enviar Cotización HTML", "type": "main", "index": 0}]
+        ]},
+        "Telegram: Enviar Cotización": {"main": [[{"node": "Odoo: Crear Lead", "type": "main", "index": 0}]]}
+    },
+    "settings": {"executionOrder": "v1", "saveManualExecutions": true},
+    "tags": ["telegram", "cotizacion", "clawbot", "email", "llm"]
+}
+
+print(json.dumps(WORKFLOW, indent=2))
