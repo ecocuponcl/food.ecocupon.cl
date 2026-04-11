@@ -1,0 +1,267 @@
+{
+  "name": "DTC Engine — Diagnóstico Automotriz → Cotización",
+  "nodes": [
+    {
+      "id": "webhook-scan",
+      "name": "Webhook: /api/scan",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "parameters": {
+        "path": "api-scan",
+        "httpMethod": "POST",
+        "responseMode": "lastNode",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "position": [240, 300]
+    },
+    {
+      "id": "parse-input",
+      "name": "Parsear Entrada",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "parameters": {
+        "mode": "manual",
+        "duplicateItem": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "dtc_codes",
+              "name": "dtc_codes",
+              "value": "={{ $json.body.dtc_codes || [] }}",
+              "type": "array"
+            },
+            {
+              "id": "vehiculo",
+              "name": "vehiculo",
+              "value": "={{ $json.body.vehiculo || 'No especificado' }}",
+              "type": "string"
+            },
+            {
+              "id": "usuario",
+              "name": "usuario",
+              "value": "={{ $json.body.usuario || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "kilometraje",
+              "name": "kilometraje",
+              "value": "={{ $json.body.kilometraje || 0 }}",
+              "type": "number"
+            }
+          ]
+        }
+      },
+      "position": [460, 300]
+    },
+    {
+      "id": "query-dtc-db",
+      "name": "Consultar DB DTC",
+      "type": "n8n-nodes-base.sqlite",
+      "typeVersion": 1,
+      "parameters": {
+        "operation": "select",
+        "query": "=SELECT \n  c.dtc_code,\n  c.category,\n  c.description_es,\n  c.severity,\n  p.part_name,\n  p.part_category,\n  p.priority,\n  p.estimated_cost_clp\nFROM dtc_codes c\nLEFT JOIN dtc_parts p ON c.dtc_code = p.dtc_code\nWHERE c.dtc_code IN ({{ $json.dtc_codes.map(c => `'${c}'`).join(', ') }})\nORDER BY c.dtc_code, p.priority",
+        "options": {}
+      },
+      "position": [680, 300]
+    },
+    {
+      "id": "call-gemma",
+      "name": "IA: Gemma Diagnóstico",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "parameters": {
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer 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"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"model\":\"google/gemma-3-1b-it:free\",\"messages\":[{\"role\":\"system\",\"content\":\"Eres un experto en diagnóstico automotriz. Interpreta códigos DTC y mapea a repuestos. Responde SOLO en JSON.\"},{\"role\":\"user\",\"content\":\"{{ JSON.stringify({dtc_codes: $json.dtc_codes, vehiculo: $json.vehiculo, kilometraje: $json.kilometraje}) }}\"}],\"temperature\":0.1,\"max_tokens\":1000}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "position": [900, 300]
+    },
+    {
+      "id": "merge-results",
+      "name": "Combinar DB + IA",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2.1,
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition"
+      },
+      "position": [1120, 300]
+    },
+    {
+      "id": "build-diagnosis",
+      "name": "Construir Diagnóstico",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "parameters": {
+        "jsCode": "// Combinar datos de DB e IA\nconst dtcCodes = $('Parsear Entrada').item.json.dtc_codes;\nconst vehiculo = $('Parsear Entrada').item.json.vehiculo;\nconst usuario = $('Parsear Entrada').item.json.usuario;\n\n// Datos de la DB SQLite\nconst dbResults = $('Consultar DB DTC').all();\n\n// Respuesta de IA\nconst iaResponse = $('IA: Gemma Diagnóstico').item.json;\nconst iaContent = JSON.parse(iaResponse.choices[0].message.content || '{}');\n\n// Construir diagnóstico\nconst diagnostico = {};\nlet totalEstimado = 0;\n\nfor (const code of dtcCodes) {\n  const parts = dbResults.filter(r => r.json.dtc_code === code);\n  const uniqueParts = [];\n  const seen = new Set();\n  \n  for (const p of parts) {\n    const key = p.json.part_name;\n    if (!seen.has(key)) {\n      seen.add(key);\n      uniqueParts.push({\n        nombre: p.json.part_name,\n        precio: p.json.estimated_cost_clp || 0,\n        prioridad: p.json.priority || 5,\n        categoria: p.json.part_category\n      });\n      totalEstimado += p.json.estimated_cost_clp || 0;\n    }\n  }\n  \n  uniqueParts.sort((a, b) => a.prioridad - b.prioridad);\n  \n  // Buscar info de IA para este código\n  const iaInfo = iaContent.diagnostico?.[code] || {};\n  \n  diagnostico[code] = {\n    problema: iaInfo.problema || parts[0]?.json.description_es || 'Código no reconocido',\n    gravedad: iaInfo.gravedad || parts[0]?.json.severity || 'media',\n    categoria: parts[0]?.json.category || 'General',\n    repuestos: uniqueParts.slice(0, 4)\n  };\n}\n\n// Construir mensaje para el usuario\nlet mensaje = `🔧 *Diagnóstico ${vehiculo}*\\n\\n`;\nfor (const [code, info] of Object.entries(diagnostico)) {\n  const emoji = info.gravedad === 'alta' || info.gravedad === 'critical' ? '🚨' : '⚠️';\n  mensaje += `${emoji} *${code}*: ${info.problema}\\n`;\n  mensaje += `Recomendamos:\\n`;\n  for (const r of info.repuestos.slice(0, 3)) {\n    mensaje += `  • ${r.nombre} - $${r.precio.toLocaleString('es-CL')}\\n`;\n  }\n  mensaje += '\\n';\n}\nmensaje += `💰 *Total estimado: $${totalEstimado.toLocaleString('es-CL')}*\\n\\n`;\nmensaje += `¿Quieres comprar los repuestos?`; \n\nreturn [{\n  json: {\n    dtc_codes: dtcCodes,\n    vehiculo: vehiculo,\n    usuario: usuario,\n    diagnostico: diagnostico,\n    total_estimado: totalEstimado,\n    mensaje_usuario: mensaje,\n    ia_raw: iaContent\n  }\n}];"
+      },
+      "position": [1340, 300]
+    },
+    {
+      "id": "create-odoo-quotation",
+      "name": "Odoo: Crear Cotización",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:8070/jsonrpc",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"jsonrpc\":\"2.0\",\"method\":\"call\",\"params\":{\"service\":\"object\",\"method\":\"execute_kw\",\"args\":[\"food_kiosk\",2,\"SmarterOS2026!\",\"sale.order\",\"create\",[{\"partner_id\":1,\"client_order_ref\":\"DTC Scan: \" + $json.dtc_codes.join(\", \") + \" - \" + $json.vehiculo,\"order_line\":[[0,0,{\"product_id\":1,\"product_uom_qty\":1,\"price_unit\": $json.total_estimado}]]}]]}}",
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "position": [1560, 300]
+    },
+    {
+      "id": "send-telegram-response",
+      "name": "Telegram: Enviar Diagnóstico",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "parameters": {
+        "chatId": "={{ $('Parsear Entrada').item.json.usuario.replace('+', '') }}",
+        "text": "={{ $('Construir Diagnóstico').item.json.mensaje_usuario }}",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "position": [1780, 200]
+    },
+    {
+      "id": "send-odoo-lead",
+      "name": "Odoo: Crear Lead CRM",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:8070/jsonrpc",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"jsonrpc\":\"2.0\",\"method\":\"call\",\"params\":{\"service\":\"object\",\"method\":\"execute_kw\",\"args\":[\"food_kiosk\",2,\"SmarterOS2026!\",\"crm.lead\",\"create\",[{\"name\":\"DTC Scan: \" + $json.vehiculo + \" - \" + $json.dtc_codes.join(\", \"),\"phone\":\"\" + $json.usuario,\"description\":\"Diagnóstico: \" + JSON.stringify($json.diagnostico),\"expected_revenue\": $json.total_estimado,\"priority\":\"3\"}]]}}",
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "position": [1780, 400]
+    },
+    {
+      "id": "final-response",
+      "name": "Respuesta JSON",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "parameters": {
+        "mode": "manual",
+        "duplicateItem": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "diagnostico",
+              "name": "diagnostico",
+              "value": "={{ $('Construir Diagnóstico').item.json.diagnostico }}",
+              "type": "object"
+            },
+            {
+              "id": "total_estimado",
+              "name": "total_estimado",
+              "value": "={{ $('Construir Diagnóstico').item.json.total_estimado }}",
+              "type": "number"
+            },
+            {
+              "id": "mensaje_usuario",
+              "name": "mensaje_usuario",
+              "value": "={{ $('Construir Diagnóstico').item.json.mensaje_usuario }}",
+              "type": "string"
+            },
+            {
+              "id": "odoo_lead_id",
+              "name": "odoo_lead_id",
+              "value": "={{ $('Odoo: Crear Lead CRM').item.json.result }}",
+              "type": "number"
+            },
+            {
+              "id": "success",
+              "name": "success",
+              "value": "=true",
+              "type": "boolean"
+            }
+          ]
+        }
+      },
+      "position": [2000, 300]
+    }
+  ],
+  "connections": {
+    "Webhook: /api/scan": {
+      "main": [[{"node": "Parsear Entrada", "type": "main", "index": 0}]]
+    },
+    "Parsear Entrada": {
+      "main": [[{"node": "Consultar DB DTC", "type": "main", "index": 0}]]
+    },
+    "Consultar DB DTC": {
+      "main": [[{"node": "IA: Gemma Diagnóstico", "type": "main", "index": 0}]]
+    },
+    "IA: Gemma Diagnóstico": {
+      "main": [[{"node": "Combinar DB + IA", "type": "main", "index": 0}]]
+    },
+    "Combinar DB + IA": {
+      "main": [[{"node": "Construir Diagnóstico", "type": "main", "index": 0}]]
+    },
+    "Construir Diagnóstico": {
+      "main": [
+        [{"node": "Telegram: Enviar Diagnóstico", "type": "main", "index": 0}],
+        [{"node": "Odoo: Crear Lead CRM", "type": "main", "index": 0}]
+      ]
+    },
+    "Odoo: Crear Lead CRM": {
+      "main": [[{"node": "Respuesta JSON", "type": "main", "index": 0}]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "saveExecutionProgress": true
+  },
+  "tags": ["dtc", "automotriz", "diagnostico", "odoo", "telegram"]
+}
