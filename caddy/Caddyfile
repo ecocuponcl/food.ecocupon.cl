@@ -47,6 +47,7 @@ api.ecocupon.cl {
 	}
 }
 
+# ── MercadoLibre-style Kiosk Landing ───────────────────meli.ecocupon.cl {	root * /var/www/meli-kiosk	encode gzip	file_server}
 # ── QR Validator (ecocupon.cl brand) ─────────────────
 qr.ecocupon.cl {
 	root * /var/www/qr-validator
