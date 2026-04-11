@@ -1,78 +1,296 @@
-# Caddyfile — EcoCupon + SmarterOS
-# Deploy en VPS: /etc/caddy/Caddyfile
+# Caddyfile — SmarterOS Unified
+# Optimized & Stabilized: 2026-04-09
+{
+	email smarterbotcl@gmail.com
+}
 
-# ── Landing Funnel ──────────────────────────────────────
+# Cloudflare DNS challenge for wildcard cert (smarterbot.store)
+(tls_cf) {
+	tls {
+		dns cloudflare sP55h3OjnBKf3R3NkZ9HT0_XK-wM1K5ax15li9oN
+	}
+}
+
+# ═══════════════════════════════════════════════════════
+# ECOCOUPON.CL (brand separada)
+# ═══════════════════════════════════════════════════════
+
 ecocupon.cl {
-    root * /var/www/ecocupon-landing
-    file_server
-    encode gzip
-
-    # API proxy to agent
-    reverse_proxy /decide* http://localhost:9000
-    reverse_proxy /recycle* http://localhost:9000
-    reverse_proxy /health* http://localhost:9000
+	root * /var/www/ecocupon-landing
+	encode gzip
+	file_server
 }
 
 www.ecocupon.cl {
-    redir https://ecocupon.cl{uri}
+	redir https://ecocupon.cl{uri}
 }
 
-# ── SmarterBOT Store ────────────────────────────────────
-store.ecocupon.cl {
-    root * /var/www/smarterbot-store
-    encode gzip
-    file_server
-}
-
-# ── smarterbot.store redirect ──────────────────────────
-# DNS must point smarterbot.store to this VPS (89.116.23.167)
-smarterbot.store www.smarterbot.store {
-    redir https://store.ecocupon.cl{uri} permanent
-}
-
-# ── Agent API ──────────────────────────────────────────
-agent.food.ecocupon.cl {
-    reverse_proxy http://localhost:9000
-}
-
-# ── Odoo Kiosk ─────────────────────────────────────────
 food.ecocupon.cl {
-    reverse_proxy http://localhost:8070
+	reverse_proxy http://127.0.0.1:8070
 }
 
-# ── n8n Event Bus ──────────────────────────────────────
-n8n.smarterbot.cl {
-    reverse_proxy http://localhost:5678
+agent.food.ecocupon.cl {
+	reverse_proxy http://127.0.0.1:9001
+	header {
+		Strict-Transport-Security "max-age=31536000;"
+		X-Content-Type-Options nosniff
+	}
 }
 
-# ── Bolt Dashboard (Streamlit) ─────────────────────────
+api.ecocupon.cl {
+	@root path /
+	redir @root /health 302
+	reverse_proxy http://127.0.0.1:9003
+	header {
+		Strict-Transport-Security "max-age=31536000;"
+		X-Content-Type-Options nosniff
+	}
+}
+
+# ── QR Validator (ecocupon.cl brand) ─────────────────
+qr.ecocupon.cl {
+	root * /var/www/qr-validator
+	encode gzip
+	file_server
+}
+
+# ── MiniApp ───────────────────────────────────────────
+app.ecocupon.cl {
+	root * /var/www/miniapp
+	encode gzip
+	file_server
+}
+
+# ═══════════════════════════════════════════════════════
+# SMARTERBOT.STORE (dominio principal)
+# ═══════════════════════════════════════════════════════
+
+# ── ERP / Odoo 19 ─────────────────────────────────────
+erp.smarterbot.store, odoo.smarterbot.store, odoo.ecocupon.cl {
+	reverse_proxy http://127.0.0.1:8070
+	header {
+		Strict-Transport-Security "max-age=31536000;"
+		X-Content-Type-Options nosniff
+		X-Frame-Options "SAMEORIGIN"
+	}
+}
+
+# ── n8n Automation ────────────────────────────────────
+n8n.smarterbot.store, n8n.smarterbot.cl {
+	reverse_proxy http://127.0.0.1:5678
+}
+
+# ── Dokploy (PaaS) ────────────────────────────────────
+dokploy.smarterbot.store, dokploy.smarterbot.cl {
+	reverse_proxy http://127.0.0.1:3000
+}
+
+# ── Bolt Dashboard (Streamlit) ────────────────────────
 bolt.smarterbot.store {
-    reverse_proxy http://localhost:8501
+	encode gzip
+	reverse_proxy http://127.0.0.1:8502 {
+		health_uri /
+		health_interval 30s
+		health_timeout 5s
+	}
 }
 
-# ── Smarter Food API ───────────────────────────────────
-food.smarterbot.cl {
-    reverse_proxy http://localhost:8002
-}
-
-# ── SmarterOS Docs ─────────────────────────────────────
-docs.smarterbot.cl {
-    reverse_proxy http://localhost:3000
-}
-
-# ── LLM API ────────────────────────────────────────────
+# ── LLM API (Motor puro) ─────────────────────────────
 llm.smarterbot.store {
-    reverse_proxy http://localhost:8000
+	reverse_proxy http://127.0.0.1:8000
 }
 
-# ── Docling ─────────────────────────────────────────────
-docling.smarterbot.store {
-    reverse_proxy http://localhost:5001
+# ── SmarterOS Main Portal + Status ────────────────────
+os.smarterbot.store {
+	@os_api path /revenue.json /balance.json /status.json /status /services /recovery.json /health /tenants.json /tenants /conversions.json /conversion /tower /tuning /rules /evaluate /scores /skus /brain.json
+	handle @os_api {
+		reverse_proxy http://127.0.0.1:8002
+	}
+	handle {
+		root * /var/www/os-portal
+		encode gzip
+		file_server
+	}
 }
 
-# ── Cloudflare AI Agent (requires DNS: ai.smarterbot.cl) ──
-# ai.smarterbot.cl {
-#     reverse_proxy https://ecocupon-ai-agent.ecocupon-cl.workers.dev {
-#         header_up Host {upstream_hostport}
-#     }
-# }
+# ── API Router (BOLT Controlled) ──────────────────────
+api.smarterbot.store {
+	encode gzip
+
+	@n8n path /v1/flow/*
+	handle @n8n {
+		reverse_proxy http://127.0.0.1:5678
+	}
+
+	@bolt path /api/bolt/*
+	handle @bolt {
+		reverse_proxy http://127.0.0.1:9011
+	}
+
+	@uf path /api/uf/* /api/uf
+	handle @uf {
+		reverse_proxy http://127.0.0.1:8005
+	}
+
+	@agent path /v1/status* /v1/health*
+	handle @agent {
+		reverse_proxy http://127.0.0.1:8002
+	}
+
+	handle {
+		respond "BOLT API v1.0 — 50 rules active" 200
+	}
+
+	header {
+		Strict-Transport-Security "max-age=31536000;"
+		X-Content-Type-Options nosniff
+	}
+}
+
+# ── API Docs (static) ─────────────────────────────────
+docs.smarterbot.store {
+	root * /var/www/docs
+	try_files {path} /index.html
+	encode gzip
+	file_server
+}
+
+# ── Kanban Board (Tasks) ──────────────────────────────
+tasks.smarterbot.store {
+	reverse_proxy http://127.0.0.1:3003
+}
+
+# ── QR Mobile Gateway ─────────────────────────────────
+qr.smarterbot.store {
+	reverse_proxy http://127.0.0.1:9010 {
+		health_uri /health
+		health_interval 30s
+		health_timeout 5s
+	}
+	header {
+		Strict-Transport-Security "max-age=31536000;"
+		X-Content-Type-Options nosniff
+	}
+}
+
+# ── RAG / Docling ─────────────────────────────────────
+rag.smarterbot.store, docling.smarterbot.store {
+	reverse_proxy http://127.0.0.1:8080
+}
+
+# ── PicoClaw Gateway ──────────────────────────────────
+picoclaw.smarterbot.store {
+	@root path /
+	redir @root /health 302
+	reverse_proxy http://127.0.0.1:18792
+}
+
+# ── Bot Portal ────────────────────────────────────────
+bot.smarterbot.store, bot.smarterbot.cl {
+	root * /var/www/bot
+	encode gzip
+	file_server
+}
+
+# ── MCP Server ────────────────────────────────────────
+mcp.smarterbot.store {
+	@root path /
+	redir @root /health 302
+	reverse_proxy http://127.0.0.1:8101
+}
+
+# ── SmarterBOT Store Landing ──────────────────────────
+tienda.smarterbot.store {
+	encode gzip
+	root * /var/www/smarterbot-store
+	file_server
+	header {
+		Strict-Transport-Security "max-age=31536000;"
+		X-Content-Type-Options nosniff
+	}
+	respond /webhook/* 403
+}
+
+# ── SmarterBOT Store (bare domain) ────────────────────
+smarterbot.store, www.smarterbot.store {
+	root * /var/www/smarterbot-store
+	encode gzip
+	file_server
+	header {
+		Strict-Transport-Security "max-age=31536000;"
+		X-Content-Type-Options nosniff
+	}
+}
+
+# ── Store (ecocupon subdomain) ────────────────────────
+store.ecocupon.cl {
+	root * /var/www/smarterbot-store
+	encode gzip
+	file_server
+}
+
+# ── Webhook API ───────────────────────────────────────
+webhook.ecocupon.cl {
+	reverse_proxy http://127.0.0.1:8004
+	header {
+		Strict-Transport-Security "max-age=31536000;"
+		X-Content-Type-Options nosniff
+		Access-Control-Allow-Origin "*"
+		Access-Control-Allow-Methods "POST, GET, OPTIONS"
+		Access-Control-Allow-Headers "*"
+	}
+}
+
+# ═══════════════════════════════════════════════════════
+# REMOVED (no backend service exists):
+#   bi.smarterbot.store        → port 3001 (no service)
+#   llm-docs.smarterbot.store  → port 3002 (AnythingLLM not deployed)
+#   chat.smarterbot.store      → port 3000 conflict with Dokploy
+#   ecocanasta.ecocupon.cl     → port 3001 (no service)
+#   qr.ecocupon.smarterbot.store → duplicate of qr.ecocupon.cl
+#   api.ecocupon.smarterbot.store → duplicate of api.ecocupon.cl
+#   app.ecocupon.smarterbot.store → duplicate of app.ecocupon.cl
+# ═══════════════════════════════════════════════════════
+
+# ── BOLT API ────────────────────────────────────────────
+bolt-api.smarterbot.store {
+	import tls_cf
+    reverse_proxy http://127.0.0.1:9011
+    header {
+        Strict-Transport-Security "max-age=31536000;"
+        X-Content-Type-Options nosniff
+    }
+}
+
+
+# flow.smarterbot.cl - Login con Twilio (RUT/SMS)
+flow.smarterbot.cl {
+    reverse_proxy localhost:3001 {
+        header_up Host {host}
+        header_up X-Real-IP {remote}
+        header_up X-Forwarded-For {remote}
+        header_up X-Forwarded-Proto {scheme}
+    }
+    encode gzip
+    log {
+        output file /var/log/caddy/flow-cl-access.log
+        level INFO
+        format json
+    }
+}
+
+# flow.smarterbot.store - Dashboard Operativo (Focalboard)
+flow.smarterbot.store {
+    reverse_proxy localhost:8001 {
+        header_up Host {host}
+        header_up X-Real-IP {remote}
+        header_up X-Forwarded-For {remote}
+        header_up X-Forwarded-Proto {scheme}
+    }
+    encode gzip
+    log {
+        output file /var/log/caddy/flow-store-access.log
+        level INFO
+        format json
+    }
+}
