@@ -3,156 +3,187 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmarterKiosk - Kiosks de Autoservicio | SmarterOS</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🖥️</text></svg>">
+    <title>SmarterKiosk — Kiosks de Autoservicio para tu Negocio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, 'Proxima Nova', Roboto, Arial, sans-serif; background: #ebebeb; color: #333; }
-        a { text-decoration: none; color: #3483fa; }
-        a:hover { color: #1259c3; }
+        :root {
+            --yellow: #FFF159;
+            --blue: #3483FA;
+            --green: #00A650;
+            --dark: #333;
+            --gray: #666;
+            --light: #EBEBEB;
+            --white: #FFF;
+        }
+        body { font-family: 'Inter', -apple-system, sans-serif; background: var(--light); color: var(--dark); line-height: 1.6; }
+        .container { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
         
         /* HEADER */
-        .header { background: linear-gradient(to bottom, #fff159 0%, #fff159 80%, #ebebeb 100%); padding: 0; position: sticky; top: 0; z-index: 100; }
-        .header-inner { max-width: 1200px; margin: 0 auto; padding: 10px 20px; }
-        .header-top { display: flex; align-items: center; gap: 15px; margin-bottom: 8px; }
-        .logo { font-size: 28px; font-weight: 800; color: #333; letter-spacing: -1px; }
-        .logo span { color: #3483fa; }
-        .search-bar { flex: 1; display: flex; background: #fff; border-radius: 4px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.15); }
-        .search-bar input { flex: 1; padding: 10px 15px; border: none; font-size: 15px; outline: none; }
-        .search-bar button { padding: 10px 15px; background: #fff; border: none; border-left: 1px solid #e6e6e6; cursor: pointer; color: #999; }
-        .search-bar button:hover { color: #3483fa; }
-        .header-nav { display: flex; gap: 20px; align-items: center; font-size: 13px; color: #333; }
-        .header-nav a { color: #333; font-size: 13px; }
-        .header-nav a:hover { color: #3483fa; }
-        .header-right { margin-left: auto; display: flex; gap: 15px; align-items: center; }
-        .header-right a { color: #333; font-size: 13px; white-space: nowrap; }
-        .cart-icon { font-size: 18px; }
+        header { background: var(--yellow); padding: 12px 0; position: sticky; top: 0; z-index: 100; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .header-inner { display: flex; align-items: center; justify-content: space-between; max-width: 1100px; margin: 0 auto; padding: 0 20px; }
+        .logo { font-size: 22px; font-weight: 900; color: var(--dark); letter-spacing: -0.5px; }
+        .logo span { color: var(--blue); }
+        .header-cta { background: var(--blue); color: var(--white); padding: 8px 18px; border-radius: 6px; font-size: 13px; font-weight: 600; text-decoration: none; }
+        .header-cta:hover { background: #1259c3; }
 
-        /* SUBHEADER */
-        .subheader { background: #fff159; border-top: 1px solid #e6e6e6; }
-        .subheader-inner { max-width: 1200px; margin: 0 auto; padding: 8px 20px; display: flex; gap: 20px; font-size: 13px; }
-        .subheader-inner a { color: #666; font-size: 13px; }
-        .subheader-inner a:hover { color: #3483fa; }
+        /* HERO */
+        .hero { background: linear-gradient(135deg, var(--blue) 0%, #1a56c4 100%); color: var(--white); padding: 60px 20px; text-align: center; }
+        .hero h1 { font-size: clamp(28px, 5vw, 44px); font-weight: 900; line-height: 1.1; margin-bottom: 12px; letter-spacing: -1px; }
+        .hero p { font-size: 17px; opacity: 0.9; margin-bottom: 25px; max-width: 600px; margin-left: auto; margin-right: auto; }
+        .hero-cta { display: inline-block; background: var(--yellow); color: var(--dark); padding: 14px 36px; border-radius: 6px; font-weight: 700; font-size: 16px; text-decoration: none; transition: all 0.2s; }
+        .hero-cta:hover { background: #ffe44e; transform: translateY(-2px); }
+        .hero-badges { display: flex; justify-content: center; gap: 20px; margin-top: 25px; flex-wrap: wrap; font-size: 13px; opacity: 0.8; }
+        .hero-badges span { display: flex; align-items: center; gap: 5px; }
 
-        /* BANNER */
-        .banner { max-width: 1200px; margin: 15px auto; border-radius: 6px; overflow: hidden; background: linear-gradient(135deg, #3483fa 0%, #1a56c4 100%); color: #fff; padding: 30px 40px; display: flex; align-items: center; justify-content: space-between; }
-        .banner-text h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
-        .banner-text p { font-size: 16px; opacity: 0.9; margin-bottom: 15px; }
-        .banner-cta { display: inline-block; background: #fff159; color: #333; padding: 12px 30px; border-radius: 6px; font-weight: 600; font-size: 15px; transition: all 0.2s; }
-        .banner-cta:hover { background: #ffe44e; transform: translateY(-2px); }
-        .banner-img { font-size: 80px; opacity: 0.3; }
+        /* SECTION */
+        .section { padding: 50px 20px; }
+        .section-title { text-align: center; font-size: 26px; font-weight: 800; margin-bottom: 35px; color: var(--dark); }
+        .section-title span { color: var(--blue); }
 
-        /* CATEGORIES */
-        .categories { max-width: 1200px; margin: 20px auto; display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; }
-        .cat-pill { padding: 8px 16px; background: #fff; border: 1px solid #ddd; border-radius: 20px; font-size: 13px; white-space: nowrap; color: #666; }
-        .cat-pill:hover, .cat-pill.active { background: #3483fa; color: #fff; border-color: #3483fa; }
+        /* ABOUT */
+        .about { background: var(--white); }
+        .about-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; max-width: 1100px; margin: 0 auto; }
+        .about-card { padding: 30px; text-align: center; }
+        .about-icon { font-size: 48px; margin-bottom: 15px; }
+        .about-card h3 { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+        .about-card p { font-size: 14px; color: var(--gray); }
+        .stats { display: flex; justify-content: center; gap: 40px; margin-top: 30px; flex-wrap: wrap; }
+        .stat { text-align: center; }
+        .stat-num { font-size: 36px; font-weight: 900; color: var(--blue); }
+        .stat-label { font-size: 13px; color: var(--gray); }
 
-        /* PRODUCTS GRID */
-        .section-title { max-width: 1200px; margin: 20px auto 10px; font-size: 22px; font-weight: 600; color: #333; padding: 0 20px; }
-        .products { max-width: 1200px; margin: 0 auto 30px; display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 15px; padding: 0 20px; }
-        .product { background: #fff; border-radius: 6px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.1); transition: box-shadow 0.2s; cursor: pointer; }
-        .product:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
-        .product-img { height: 200px; background: #f5f5f5; display: flex; align-items: center; justify-content: center; font-size: 60px; position: relative; }
-        .product-badge { position: absolute; top: 10px; left: 10px; background: #00a650; color: #fff; font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 3px; }
-        .product-badge.hot { background: #ff7733; }
-        .product-badge.new { background: #3483fa; }
-        .product-info { padding: 15px; }
-        .product-price { font-size: 22px; font-weight: 400; color: #333; margin-bottom: 4px; }
-        .product-installments { font-size: 13px; color: #00a650; margin-bottom: 8px; }
-        .product-shipping { font-size: 12px; color: #00a650; font-weight: 600; margin-bottom: 8px; }
-        .product-name { font-size: 14px; color: #666; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        .product-rating { margin-top: 8px; display: flex; align-items: center; gap: 5px; }
-        .stars { color: #3483fa; font-size: 12px; }
-        .rating-count { font-size: 11px; color: #999; }
+        /* PRODUCTS */
+        .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; max-width: 1100px; margin: 0 auto; }
+        .product { background: var(--white); border-radius: 8px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.1); transition: box-shadow 0.2s; }
+        .product:hover { box-shadow: 0 6px 16px rgba(0,0,0,0.15); }
+        .product-img { height: 180px; background: #f5f5f5; display: flex; align-items: center; justify-content: center; font-size: 56px; position: relative; }
+        .badge { position: absolute; top: 10px; left: 10px; background: var(--green); color: #fff; font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 3px; }
+        .badge.hot { background: #ff7733; }
+        .badge.new { background: var(--blue); }
+        .product-info { padding: 16px; }
+        .price { font-size: 24px; font-weight: 400; color: var(--dark); margin-bottom: 4px; }
+        .installments { font-size: 13px; color: var(--green); margin-bottom: 8px; }
+        .shipping { font-size: 12px; color: var(--green); font-weight: 600; margin-bottom: 8px; }
+        .product-name { font-size: 14px; color: var(--gray); line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .product-btn { display: block; width: calc(100% - 32px); margin: 12px 16px 16px; padding: 10px; background: var(--blue); color: #fff; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; text-align: center; text-decoration: none; }
+        .product-btn:hover { background: #1259c3; }
 
-        /* FEATURES SECTION */
-        .features { max-width: 1200px; margin: 30px auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; padding: 0 20px; }
-        .feature { background: #fff; border-radius: 6px; padding: 20px; text-align: center; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
-        .feature-icon { font-size: 36px; margin-bottom: 10px; }
-        .feature h3 { font-size: 15px; font-weight: 600; color: #333; margin-bottom: 5px; }
-        .feature p { font-size: 13px; color: #999; }
+        /* COURSE STRUCTURE */
+        .structure { background: var(--white); }
+        .modules { max-width: 800px; margin: 0 auto; }
+        .module { border: 1px solid #e6e6e6; border-radius: 6px; margin-bottom: 12px; overflow: hidden; }
+        .module-header { padding: 16px 20px; background: #f9f9f9; display: flex; align-items: center; gap: 12px; cursor: pointer; }
+        .module-num { background: var(--blue); color: #fff; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; }
+        .module-title { font-size: 15px; font-weight: 600; }
+        .module-content { padding: 16px 20px; font-size: 14px; color: var(--gray); display: none; }
+        .module.open .module-content { display: block; }
+        .module ul { list-style: none; padding: 0; }
+        .module ul li { padding: 6px 0; border-bottom: 1px solid #f0f0f0; }
+        .module ul li:last-child { border-bottom: none; }
+        .module ul li::before { content: "✓ "; color: var(--green); font-weight: 600; }
 
-        /* COUPON BANNER */
-        .coupon-banner { max-width: 1200px; margin: 20px auto; background: linear-gradient(135deg, #00a650 0%, #008a43 100%); color: #fff; padding: 20px 30px; border-radius: 6px; display: flex; align-items: center; justify-content: space-between; }
-        .coupon-banner h3 { font-size: 20px; font-weight: 700; }
-        .coupon-banner p { font-size: 14px; opacity: 0.9; }
-        .coupon-code { background: rgba(255,255,255,0.2); padding: 8px 20px; border-radius: 4px; font-size: 18px; font-weight: 700; letter-spacing: 2px; }
+        /* BONUSES */
+        .bonuses { max-width: 800px; margin: 0 auto; }
+        .bonus-item { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #eee; }
+        .bonus-icon { font-size: 24px; }
+        .bonus-text { font-size: 14px; }
+        .bonus-text strong { color: var(--dark); }
+
+        /* PRICING */
+        .pricing-section { background: linear-gradient(135deg, var(--blue) 0%, #1a56c4 100%); color: #fff; text-align: center; }
+        .pricing-section .section-title { color: #fff; }
+        .pricing-card { max-width: 400px; margin: 0 auto; background: #fff; color: var(--dark); border-radius: 12px; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
+        .pricing-header { background: var(--yellow); padding: 24px; }
+        .pricing-header h3 { font-size: 18px; font-weight: 700; margin-bottom: 5px; }
+        .pricing-header .old-price { font-size: 14px; color: var(--gray); text-decoration: line-through; }
+        .pricing-amount { font-size: 48px; font-weight: 900; color: var(--dark); padding: 20px; }
+        .pricing-amount span { font-size: 18px; font-weight: 400; }
+        .pricing-features { padding: 0 24px 20px; text-align: left; }
+        .pricing-features li { list-style: none; padding: 8px 0; font-size: 14px; border-bottom: 1px solid #f0f0f0; }
+        .pricing-features li::before { content: "✓ "; color: var(--green); font-weight: 600; }
+        .pricing-btn { display: block; margin: 0 24px 24px; padding: 14px; background: var(--blue); color: #fff; border: none; border-radius: 6px; font-size: 16px; font-weight: 700; cursor: pointer; text-decoration: none; text-align: center; }
+        .pricing-btn:hover { background: #1259c3; }
+        .pricing-guarantee { font-size: 12px; color: var(--gray); padding: 0 24px 20px; text-align: center; }
+
+        /* OUTCOMES */
+        .outcomes { background: var(--white); }
+        .outcomes-list { max-width: 700px; margin: 0 auto; }
+        .outcome { display: flex; align-items: flex-start; gap: 12px; padding: 14px 0; border-bottom: 1px solid #f0f0f0; }
+        .outcome-icon { font-size: 24px; flex-shrink: 0; }
+        .outcome h4 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+        .outcome p { font-size: 13px; color: var(--gray); }
+
+        /* FAQ */
+        .faq { background: var(--light); }
+        .faq-list { max-width: 750px; margin: 0 auto; }
+        .faq-item { border: 1px solid #e6e6e6; border-radius: 6px; margin-bottom: 10px; background: #fff; overflow: hidden; }
+        .faq-q { padding: 16px 20px; font-size: 15px; font-weight: 600; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .faq-q::after { content: "+"; font-size: 20px; color: var(--blue); font-weight: 300; }
+        .faq-item.open .faq-q::after { content: "−"; }
+        .faq-a { padding: 0 20px 16px; font-size: 14px; color: var(--gray); display: none; }
+        .faq-item.open .faq-a { display: block; }
+
+        /* FINAL CTA */
+        .final-cta { background: linear-gradient(135deg, var(--green) 0%, #008a43 100%); color: #fff; text-align: center; padding: 60px 20px; }
+        .final-cta h2 { font-size: 30px; font-weight: 900; margin-bottom: 12px; }
+        .final-cta p { font-size: 16px; opacity: 0.9; margin-bottom: 25px; }
+        .final-cta .hero-cta { background: #fff; color: var(--dark); }
+        .final-cta .hero-cta:hover { background: #f5f5f5; }
 
         /* FOOTER */
-        .footer { background: #fff; border-top: 1px solid #e6e6e6; margin-top: 30px; padding: 30px 20px; }
-        .footer-inner { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 30px; }
-        .footer h4 { font-size: 13px; font-weight: 700; color: #999; margin-bottom: 10px; text-transform: uppercase; }
-        .footer a { display: block; font-size: 13px; color: #666; margin-bottom: 5px; }
-        .footer a:hover { color: #3483fa; }
-        .footer-bottom { max-width: 1200px; margin: 20px auto 0; padding-top: 20px; border-top: 1px solid #e6e6e6; text-align: center; font-size: 12px; color: #999; }
+        footer { background: #fff; border-top: 1px solid #e6e6e6; padding: 30px 20px; text-align: center; font-size: 13px; color: var(--gray); }
+        footer a { color: var(--blue); }
+        footer p { margin-bottom: 5px; }
 
-        /* WHATSAPP FLOAT */
-        .whatsapp-float { position: fixed; bottom: 20px; right: 20px; background: #25d366; color: #fff; width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 999; }
+        /* WHATSAPP */
+        .whatsapp-float { position: fixed; bottom: 20px; right: 20px; background: #25D366; color: #fff; width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; text-decoration: none; box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 999; }
         .whatsapp-float:hover { transform: scale(1.1); }
 
-        /* RESPONSIVE */
+        /* COUPON */
+        .coupon-banner { max-width: 800px; margin: -20px auto 30px; background: linear-gradient(135deg, var(--green) 0%, #008a43 100%); color: #fff; padding: 16px 24px; border-radius: 8px; display: flex; align-items: center; justify-content: space-between; position: relative; z-index: 10; box-shadow: 0 4px 12px rgba(0,166,80,0.3); }
+        .coupon-banner h3 { font-size: 16px; font-weight: 700; }
+        .coupon-banner p { font-size: 13px; opacity: 0.9; }
+        .coupon-code { background: rgba(255,255,255,0.2); padding: 8px 18px; border-radius: 4px; font-size: 18px; font-weight: 700; letter-spacing: 2px; }
+
         @media (max-width: 768px) {
-            .header-top { flex-wrap: wrap; }
-            .search-bar { order: 3; width: 100%; }
-            .header-right { display: none; }
-            .banner { flex-direction: column; text-align: center; padding: 20px; }
-            .banner-img { display: none; }
-            .products { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-            .product-img { height: 150px; }
-            .product-price { font-size: 18px; }
-            .coupon-banner { flex-direction: column; text-align: center; gap: 15px; }
+            .hero { padding: 40px 20px; }
+            .hero h1 { font-size: 28px; }
+            .products-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+            .product-img { height: 140px; font-size: 40px; }
+            .price { font-size: 20px; }
+            .coupon-banner { flex-direction: column; text-align: center; gap: 12px; margin: 10px 15px 20px; }
+            .stats { gap: 20px; }
         }
     </style>
 </head>
 <body>
 
     <!-- HEADER -->
-    <header class="header">
+    <header>
         <div class="header-inner">
-            <div class="header-top">
-                <div class="logo">Smarter<span>Kiosk</span></div>
-                <div class="search-bar">
-                    <input type="text" placeholder="Buscar kiosks, hosting, automatización...">
-                    <button>🔍</button>
-                </div>
-                <div class="header-right">
-                    <a href="#productos">Productos</a>
-                    <a href="#precios">Precios</a>
-                    <a href="#contacto">Contacto</a>
-                    <a href="https://odoo.ecocupon.cl" class="cart-icon">🛒</a>
-                </div>
-            </div>
-            <div class="header-nav">
-                <a href="https://odoo.ecocupon.cl">Odoo ERP</a>
-                <a href="https://n8n.smarterbot.store">Automatización</a>
-                <a href="https://flow.smarterbot.store">Dashboard</a>
-                <a href="https://os.smarterbot.store">API Status</a>
-            </div>
+            <div class="logo">Smarter<span>Kiosk</span></div>
+            <a href="https://wa.me/56979540471?text=Hola!%20Me%20interesa%20un%20CLAWBOT%20Kiosk" class="header-cta" target="_blank">💬 Contáctanos</a>
         </div>
     </header>
 
-    <!-- SUBHEADER -->
-    <div class="subheader">
-        <div class="subheader-inner">
-            <a href="#kiosks">Kiosks</a>
-            <a href="#hosting">Hosting</a>
-            <a href="#setup">Setup</a>
-            <a href="#subscription">Suscripción</a>
-            <a href="#openclaw">OpenClaw</a>
+    <!-- HERO -->
+    <section class="hero">
+        <div class="container">
+            <h1>Automatiza tu Negocio con<br>Kiosks de Autoservicio</h1>
+            <p>Instalación en 48hs. Soporte 24/7. Tus clientes pagan solos y tú ganas más.</p>
+            <a href="#productos" class="hero-cta">Ver Kiosks Disponibles</a>
+            <div class="hero-badges">
+                <span>⚡ Instalación en 48hs</span>
+                <span>🔧 Soporte 24/7</span>
+                <span>💳 Todos los medios de pago</span>
+                <span>📊 Dashboard en vivo</span>
+            </div>
         </div>
-    </div>
+    </section>
 
-    <!-- BANNER -->
-    <div class="banner">
-        <div class="banner-text">
-            <h1>Kiosks de Autoservicio para tu Negocio</h1>
-            <p>Instalación en 48hs. Pago por transferencia. Soporte 24/7 incluido.</p>
-            <a href="#productos" class="banner-cta">Ver todos los kiosks</a>
-        </div>
-        <div class="banner-img">🖥️</div>
-    </div>
-
-    <!-- COUPON BANNER -->
+    <!-- COUPON -->
     <div class="coupon-banner">
         <div>
             <h3>🎉 15% OFF en tu primer kiosk</h3>
@@ -161,214 +192,284 @@
         <div class="coupon-code">MECANICO15</div>
     </div>
 
-    <!-- CATEGORIES -->
-    <div class="categories">
-        <div class="cat-pill active">Todos</div>
-        <div class="cat-pill">Kiosks CLAWBOT</div>
-        <div class="cat-pill">Hosting</div>
-        <div class="cat-pill">Setup</div>
-        <div class="cat-pill">Suscripción</div>
-        <div class="cat-pill">OpenClaw</div>
-        <div class="cat-pill">Más vendidos</div>
-    </div>
+    <!-- ABOUT -->
+    <section class="section about">
+        <div class="container">
+            <h2 class="section-title">¿Qué es <span>SmarterKiosk</span>?</h2>
+            <div class="about-grid">
+                <div class="about-card">
+                    <div class="about-icon">🖥️</div>
+                    <h3>Kiosks Inteligentes</h3>
+                    <p>CLAWBOT es el kiosk de autoservicio más completo del mercado. Acepta todos los pagos y gestiona tu negocio solo.</p>
+                </div>
+                <div class="about-card">
+                    <div class="about-icon">🤖</div>
+                    <h3>IA Integrada</h3>
+                    <p>OpenClaw analiza tu negocio, optimiza precios y envía mensajes automáticos a tus clientes.</p>
+                </div>
+                <div class="about-card">
+                    <div class="about-icon">📊</div>
+                    <h3>Dashboard en Vivo</h3>
+                    <p>Monitorea ventas, métricas y rendimiento desde cualquier dispositivo en tiempo real.</p>
+                </div>
+            </div>
+            <div class="stats">
+                <div class="stat"><div class="stat-num">127+</div><div class="stat-label">Kiosks instalados</div></div>
+                <div class="stat"><div class="stat-num">24/7</div><div class="stat-label">Soporte técnico</div></div>
+                <div class="stat"><div class="stat-num">48hs</div><div class="stat-label">Tiempo de instalación</div></div>
+                <div class="stat"><div class="stat-num">98%</div><div class="stat-label">Satisfacción clientes</div></div>
+            </div>
+        </div>
+    </section>
 
-    <!-- PRODUCTS: KIOSKS -->
-    <h2 class="section-title">Kiosks CLAWBOT</h2>
-    <div class="products">
-        <div class="product" onclick="window.open('https://odoo.ecocupon.cl/web/login')">
-            <div class="product-img">🖥️
-                <span class="product-badge hot">MÁS VENDIDO</span>
-            </div>
-            <div class="product-info">
-                <div class="product-price">$ 950.000</div>
-                <div class="product-installments">en 12x $ 79.167 sin interés</div>
-                <div class="product-shipping">🚚 Instalación incluida</div>
-                <div class="product-name">CLAWBOT Kiosk - Kiosko de Autoservicio Completo con Software Integrado</div>
-                <div class="product-rating">
-                    <span class="stars">★★★★★</span>
-                    <span class="rating-count">(127)</span>
+    <!-- PRODUCTS -->
+    <section class="section" id="productos">
+        <div class="container">
+            <h2 class="section-title">Nuestros <span>Productos</span></h2>
+            <div class="products-grid">
+                <div class="product">
+                    <div class="product-img">🖥️ <span class="badge hot">MÁS VENDIDO</span></div>
+                    <div class="product-info">
+                        <div class="price">$ 950.000</div>
+                        <div class="installments">en 12x $79.167 sin interés</div>
+                        <div class="shipping">🚚 Instalación incluida</div>
+                        <div class="product-name">CLAWBOT Kiosk — Kiosko de Autoservicio Completo con Software Integrado</div>
+                    </div>
+                    <a href="https://odoo.ecocupon.cl/web/login" class="product-btn" target="_blank">Comprar ahora</a>
+                </div>
+                <div class="product">
+                    <div class="product-img">🖥️🖥️ <span class="badge new">NUEVO</span></div>
+                    <div class="product-info">
+                        <div class="price">$ 1.800.000</div>
+                        <div class="installments">en 12x $150.000 sin interés</div>
+                        <div class="shipping">🚚 Pack x2 — Ahorra $100.000</div>
+                        <div class="product-name">CLAWBOT Kiosk Pack x2 — Doble Kiosko para Mayor Demanda</div>
+                    </div>
+                    <a href="https://odoo.ecocupon.cl/web/login" class="product-btn" target="_blank">Comprar ahora</a>
+                </div>
+                <div class="product">
+                    <div class="product-img">🛠️ <span class="badge">SERVICIO</span></div>
+                    <div class="product-info">
+                        <div class="price">$ 570.000</div>
+                        <div class="installments">en 6x $95.000 sin interés</div>
+                        <div class="shipping">⚡ Configuración en 24hs</div>
+                        <div class="product-name">Kiosk Setup — Configuración e Implementación de Kiosko</div>
+                    </div>
+                    <a href="https://odoo.ecocupon.cl/web/login" class="product-btn" target="_blank">Comprar ahora</a>
+                </div>
+                <div class="product">
+                    <div class="product-img">☁️</div>
+                    <div class="product-info">
+                        <div class="price">$ 190.000 <span style="font-size:13px;color:#999">setup</span></div>
+                        <div class="installments">+ $76.000/mes</div>
+                        <div class="shipping">☁️ Hosting gestionado 24/7</div>
+                        <div class="product-name">Hosting SmarterOS — Infraestructura Cloud con Monitoreo y Backups</div>
+                    </div>
+                    <a href="https://odoo.ecocupon.cl/web/login" class="product-btn" target="_blank">Comprar ahora</a>
+                </div>
+                <div class="product">
+                    <div class="product-img">🚀 <span class="badge hot">TOP</span></div>
+                    <div class="product-info">
+                        <div class="price">$ 380.000<span style="font-size:13px;color:#999">/mes</span></div>
+                        <div class="installments">Cancela cuando quieras</div>
+                        <div class="shipping">🎯 Plataforma completa</div>
+                        <div class="product-name">SmarterOS Subscription — Acceso Completo + Analytics</div>
+                    </div>
+                    <a href="https://odoo.ecocupon.cl/web/login" class="product-btn" target="_blank">Comprar ahora</a>
+                </div>
+                <div class="product">
+                    <div class="product-img">🤖 <span class="badge new">IA</span></div>
+                    <div class="product-info">
+                        <div class="price">$ 114.000<span style="font-size:13px;color:#999">/mes</span></div>
+                        <div class="installments">Agente IA personalizado</div>
+                        <div class="shipping">🧠 Fine-tuning mensual</div>
+                        <div class="product-name">OpenClaw Agent — Agente IA con Telegram y Webhooks Custom</div>
+                    </div>
+                    <a href="https://odoo.ecocupon.cl/web/login" class="product-btn" target="_blank">Comprar ahora</a>
                 </div>
             </div>
         </div>
-        <div class="product" onclick="window.open('https://odoo.ecocupon.cl/web/login')">
-            <div class="product-img">🖥️🖥️
-                <span class="product-badge new">NUEVO</span>
-            </div>
-            <div class="product-info">
-                <div class="product-price">$ 1.800.000</div>
-                <div class="product-installments">en 12x $ 150.000 sin interés</div>
-                <div class="product-shipping">🚚 Pack x2 - Ahorra $100.000</div>
-                <div class="product-name">CLAWBOT Kiosk Pack x2 - Doble Kiosko para Mayor Demanda</div>
-                <div class="product-rating">
-                    <span class="stars">★★★★★</span>
-                    <span class="rating-count">(45)</span>
-                </div>
-            </div>
-        </div>
-        <div class="product" onclick="window.open('https://odoo.ecocupon.cl/web/login')">
-            <div class="product-img">🖥️×3</div>
-            <div class="product-info">
-                <div class="product-price">$ 2.565.000</div>
-                <div class="product-installments">en 12x $ 213.750 sin interés</div>
-                <div class="product-shipping">🚚 Pack x3 - Ahorra $285.000</div>
-                <div class="product-name">CLAWBOT Kiosk Pack x3 - Solución Completa para Restaurantes</div>
-                <div class="product-rating">
-                    <span class="stars">★★★★☆</span>
-                    <span class="rating-count">(23)</span>
-                </div>
-            </div>
-        </div>
-        <div class="product" onclick="window.open('https://odoo.ecocupon.cl/web/login')">
-            <div class="product-img">🛠️
-                <span class="product-badge">SERVICIO</span>
-            </div>
-            <div class="product-info">
-                <div class="product-price">$ 570.000</div>
-                <div class="product-installments">en 6x $ 95.000 sin interés</div>
-                <div class="product-shipping">⚡ Configuración en 24hs</div>
-                <div class="product-name">Kiosk Setup - Configuración e Implementación de Kiosko de Autoservicio</div>
-                <div class="product-rating">
-                    <span class="stars">★★★★★</span>
-                    <span class="rating-count">(89)</span>
-                </div>
-            </div>
-        </div>
-    </div>
+    </section>
 
-    <!-- PRODUCTS: HOSTING & SUB -->
-    <h2 class="section-title">Hosting y Suscripciones</h2>
-    <div class="products">
-        <div class="product" onclick="window.open('https://odoo.ecocupon.cl/web/login')">
-            <div class="product-img">☁️</div>
-            <div class="product-info">
-                <div class="product-price">$ 190.000</div>
-                <div class="product-installments">setup único + $76.000/mes</div>
-                <div class="product-shipping">☁️ Hosting gestionado 24/7</div>
-                <div class="product-name">Hosting SmarterOS - Infraestructura Cloud con Monitoreo y Backups</div>
-                <div class="product-rating">
-                    <span class="stars">★★★★★</span>
-                    <span class="rating-count">(234)</span>
+    <!-- STRUCTURE -->
+    <section class="section structure">
+        <div class="container">
+            <h2 class="section-title">¿Qué <span>incluye</span> tu Kiosk?</h2>
+            <div class="modules">
+                <div class="module open">
+                    <div class="module-header" onclick="this.parentElement.classList.toggle('open')">
+                        <div class="module-num">1</div>
+                        <div class="module-title">Hardware + Software CLAWBOT</div>
+                    </div>
+                    <div class="module-content">
+                        <ul>
+                            <li>Pantalla táctil de alta resolución</li>
+                            <li>Lector de código de barras y QR</li>
+                            <li>Impresora de tickets integrada</li>
+                            <li>Software personalizado para tu negocio</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="module">
+                    <div class="module-header" onclick="this.parentElement.classList.toggle('open')">
+                        <div class="module-num">2</div>
+                        <div class="module-title">Integración con Odoo ERP</div>
+                    </div>
+                    <div class="module-content">
+                        <ul>
+                            <li>Gestión de inventario automática</li>
+                            <li>Facturación electrónica al SII</li>
+                            <li>Reportes de ventas en tiempo real</li>
+                            <li>Control de stock multi-sucursal</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="module">
+                    <div class="module-header" onclick="this.parentElement.classList.toggle('open')">
+                        <div class="module-num">3</div>
+                        <div class="module-title">Automatización con n8n</div>
+                    </div>
+                    <div class="module-content">
+                        <ul>
+                            <li>Alertas automáticas por WhatsApp</li>
+                            <li>Email marketing a clientes</li>
+                            <li>Recordatorios de pago</li>
+                            <li>Integración con MercadoPago</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="module">
+                    <div class="module-header" onclick="this.parentElement.classList.toggle('open')">
+                        <div class="module-num">4</div>
+                        <div class="module-title">IA OpenClaw</div>
+                    </div>
+                    <div class="module-content">
+                        <ul>
+                            <li>Análisis predictivo de ventas</li>
+                            <li>Optimización automática de precios</li>
+                            <li>Chatbot para atención al cliente</li>
+                            <li>Reportes inteligentes semanales</li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="product" onclick="window.open('https://odoo.ecocupon.cl/web/login')">
-            <div class="product-img">🚀
-                <span class="product-badge hot">TOP</span>
-            </div>
-            <div class="product-info">
-                <div class="product-price">$ 380.000<span style="font-size:13px;color:#999">/mes</span></div>
-                <div class="product-installments">Suscripción mensual - Cancela cuando quieras</div>
-                <div class="product-shipping">🎯 Plataforma completa</div>
-                <div class="product-name">SmarterOS Subscription - Acceso Completo a Plataforma + Analytics</div>
-                <div class="product-rating">
-                    <span class="stars">★★★★★</span>
-                    <span class="rating-count">(567)</span>
-                </div>
-            </div>
-        </div>
-        <div class="product" onclick="window.open('https://odoo.ecocupon.cl/web/login')">
-            <div class="product-img">🤖
-                <span class="product-badge new">IA</span>
-            </div>
-            <div class="product-info">
-                <div class="product-price">$ 114.000<span style="font-size:13px;color:#999">/mes</span></div>
-                <div class="product-installments">Agente IA personalizado</div>
-                <div class="product-shipping">🧠 Fine-tuning mensual</div>
-                <div class="product-name">OpenClaw Agent - Agente IA con Integración Telegram y Webhooks Custom</div>
-                <div class="product-rating">
-                    <span class="stars">★★★★★</span>
-                    <span class="rating-count">(89)</span>
-                </div>
-            </div>
-        </div>
-        <div class="product" onclick="window.open('https://odoo.ecocupon.cl/web/login')">
-            <div class="product-img">📱</div>
-            <div class="product-info">
-                <div class="product-price">$ 8.540<span style="font-size:13px;color:#999">/mes</span></div>
-                <div class="product-installments">Plan Starter - Sin setup</div>
-                <div class="product-shipping">🟢 Acceso inmediato</div>
-                <div class="product-name">SmarterOS Starter - SmarterOS Base + OpenClaw + n8n Workflows</div>
-                <div class="product-rating">
-                    <span class="stars">★★★★☆</span>
-                    <span class="rating-count">(1.2k)</span>
-                </div>
-            </div>
-        </div>
-    </div>
+    </section>
 
-    <!-- FEATURES -->
-    <h2 class="section-title">¿Por qué elegir SmarterKiosk?</h2>
-    <div class="features">
-        <div class="feature">
-            <div class="feature-icon">⚡</div>
-            <h3>Instalación en 48hs</h3>
-            <p>Desplegamos tu kiosk en 2 días hábiles</p>
+    <!-- BONUSES -->
+    <section class="section">
+        <div class="container">
+            <h2 class="section-title">Bonus <span>Incluidos</span></h2>
+            <div class="bonuses">
+                <div class="bonus-item"><div class="bonus-icon">📋</div><div class="bonus-text"><strong>Checklist de instalación</strong> — Guía paso a paso para tu primer kiosk</div></div>
+                <div class="bonus-item"><div class="bonus-icon">🎨</div><div class="bonus-text"><strong>Template de personalización</strong> — Adapta tu kiosk a tu marca en minutos</div></div>
+                <div class="bonus-item"><div class="bonus-icon">📊</div><div class="bonus-text"><strong>Dashboard personalizado</strong> — Métricas clave de tu negocio</div></div>
+                <div class="bonus-item"><div class="bonus-icon">📱</div><div class="bonus-text"><strong>App de gestión móvil</strong> — Controla todo desde tu celular</div></div>
+                <div class="bonus-item"><div class="bonus-icon">🎓</div><div class="bonus-text"><strong>Capacitación incluida</strong> — 2 horas de entrenamiento para tu equipo</div></div>
+            </div>
         </div>
-        <div class="feature">
-            <div class="feature-icon">🔧</div>
-            <h3>Soporte 24/7</h3>
-            <p>Soporte técnico todos los días del año</p>
+    </section>
+
+    <!-- OUTCOMES -->
+    <section class="section outcomes">
+        <div class="container">
+            <h2 class="section-title">Si Sigues las <span>Instrucciones</span></h2>
+            <div class="outcomes-list">
+                <div class="outcome"><div class="outcome-icon">🚀</div><div><h4>Kiosk funcionando en 48hs</h4><p>Instalación completa sin complicaciones técnicas</p></div></div>
+                <div class="outcome"><div class="outcome-icon">💰</div><div><h4>Cobros automáticos desde el día 1</h4><p>Tus clientes pagan sin esperar filas ni atención</p></div></div>
+                <div class="outcome"><div class="outcome-icon">📈</div><div><h4>Aumento del 30% en ventas</h4><p>Los kiosks de autoservicio incrementan las compras impulsivas</p></div></div>
+                <div class="outcome"><div class="outcome-icon">🤖</div><div><h4>Negocio gestionado por IA</h4><p>OpenClaw optimiza precios y envía mensajes a clientes solo</p></div></div>
+            </div>
         </div>
-        <div class="feature">
-            <div class="feature-icon">💳</div>
-            <h3>Pago por transferencia</h3>
-            <p>Acepta todos los medios de pago</p>
+    </section>
+
+    <!-- PRICING -->
+    <section class="section pricing-section" id="precios">
+        <div class="container">
+            <h2 class="section-title">Plan Completo <span>SmarterKiosk</span></h2>
+            <div class="pricing-card">
+                <div class="pricing-header">
+                    <h3>CLAWBOT Kiosk Completo</h3>
+                    <div class="old-price">$1.100.000</div>
+                </div>
+                <div class="pricing-amount">$950.000 <span>CLP</span></div>
+                <ul class="pricing-features">
+                    <li>Kiosk CLAWBOT con pantalla táctil</li>
+                    <li>Software personalizado</li>
+                    <li>Integración Odoo ERP</li>
+                    <li>Automatización n8n</li>
+                    <li>IA OpenClaw incluida</li>
+                    <li>Instalación en 48hs</li>
+                    <li>Soporte técnico 24/7</li>
+                    <li>Dashboard en vivo</li>
+                    <li>Capacitación para tu equipo</li>
+                </ul>
+                <a href="https://odoo.ecocupon.cl/web/login" class="pricing-btn" target="_blank">Comprar ahora →</a>
+                <div class="pricing-guarantee">Garantía 30 días. Si no recuperas la inversión, te devolvemos el dinero.</div>
+            </div>
         </div>
-        <div class="feature">
-            <div class="feature-icon">📊</div>
-            <h3>Dashboard en vivo</h3>
-            <p>Monitorea ventas y métricas en tiempo real</p>
+    </section>
+
+    <!-- FAQ -->
+    <section class="section faq">
+        <div class="container">
+            <h2 class="section-title">Preguntas <span>Frecuentes</span></h2>
+            <div class="faq-list">
+                <div class="faq-item">
+                    <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">¿Cuánto tiempo tarda la instalación?</div>
+                    <div class="faq-a">48 horas hábiles desde que confirmas el pago. Incluye instalación física, configuración de software y capacitación para tu equipo.</div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">¿Necesito conocimientos técnicos?</div>
+                    <div class="faq-a">No. Nos encargamos de todo. Tú solo necesitas un espacio para el kiosk y conexión a internet. El resto lo hacemos nosotros.</div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">¿Qué pasa si algo falla?</div>
+                    <div class="faq-a">Soporte 24/7 incluido. Si hay un problema técnico, lo resolvemos en menos de 4 horas. Si no se puede reparar, reemplazamos el equipo.</div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">¿Puedo pagar en cuotas?</div>
+                    <div class="faq-a">Sí. Hasta 12 cuotas sin interés con tarjeta de crédito. También aceptamos transferencia bancaria y MercadoPago.</div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">¿Qué incluye la suscripción mensual?</div>
+                    <div class="faq-a">Hosting cloud, monitoreo 24/7, actualizaciones de software, IA OpenClaw, backups diarios y soporte técnico ilimitado.</div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">¿Puedo cancelar cuando quiera?</div>
+                    <div class="faq-a">Sí. La suscripción mensual no tiene permanencia. Cancelas cuando quieras y sigues usando el kiosk con funcionalidades básicas.</div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">¿Funciona con todos los medios de pago?</div>
+                    <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">¿Funciona con todos los medios de pago?</div>
+                    <div class="faq-a">Sí. Acepta tarjetas de crédito/débito, QR, efectivo (con módulo adicional), y pagos por transferencia bancaria.</div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">¿Hay garantía de devolución?</div>
+                    <div class="faq-a">30 días de garantía. Si no estás satisfecho o no recuperas la inversión, te devolvemos el 100% del dinero.</div>
+                </div>
+            </div>
         </div>
-        <div class="feature">
-            <div class="feature-icon">🤖</div>
-            <h3>IA integrada</h3>
-            <p>Agentes inteligentes que aprenden de tu negocio</p>
+    </section>
+
+    <!-- FINAL CTA -->
+    <section class="final-cta">
+        <div class="container">
+            <h2>¿Listo para automatizar tu negocio?</h2>
+            <p>Únete a más de 127 negocios que ya usan SmarterKiosk</p>
+            <a href="https://wa.me/56979540471?text=Hola!%20Quiero%20automatizar%20mi%20negocio%20con%20un%20CLAWBOT%20Kiosk" class="hero-cta" target="_blank">💬 Hablar por WhatsApp</a>
         </div>
-        <div class="feature">
-            <div class="feature-icon">🔗</div>
-            <h3>Integración Odoo</h3>
-            <p>ERP completo para gestionar tu negocio</p>
-        </div>
-    </div>
+    </section>
 
     <!-- FOOTER -->
-    <footer class="footer">
-        <div class="footer-inner">
-            <div>
-                <h4>Acerca de</h4>
-                <a href="https://os.smarterbot.store">SmarterOS Platform</a>
-                <a href="https://odoo.ecocupon.cl">Odoo ERP</a>
-                <a href="https://n8n.smarterbot.store">Automatizaciones</a>
-                <a href="https://flow.smarterbot.store">Dashboard</a>
-            </div>
-            <div>
-                <h4>Soporte</h4>
-                <a href="https://os.smarterbot.store/status.json">Estado del sistema</a>
-                <a href="https://qr.ecocupon.cl">Centro de ayuda</a>
-                <a href="tel:+56900000000">Contacto telefónico</a>
-            </div>
-            <div>
-                <h4>Pagos</h4>
-                <a href="#">Transferencia bancaria</a>
-                <a href="#">MercadoPago</a>
-                <a href="#">Flow.cl</a>
-                <a href="#">Facturación electrónica</a>
-            </div>
-            <div>
-                <h4>Legal</h4>
-                <a href="#">Términos y condiciones</a>
-                <a href="#">Política de privacidad</a>
-                <a href="#">Garantía de servicio</a>
-            </div>
-        </div>
-        <div class="footer-bottom">
-            <p>Copyright © 2026 SmarterKiosk - SmarterOS v4.0 | Todos los derechos reservados</p>
-            <p>Precios expresados en pesos chilenos (CLP) | 1 UF = $38.000</p>
-        </div>
+    <footer>
+        <p>Copyright © 2026 SmarterKiosk — SmarterOS v4.0 | Todos los derechos reservados</p>
+        <p>Precios en CLP | 1 UF = $38.000 | <a href="https://odoo.ecocupon.cl" target="_blank">Odoo ERP</a> | <a href="https://n8n.smarterbot.store" target="_blank">n8n</a></p>
+        <p><a href="https://wa.me/56979540471" target="_blank">WhatsApp: +56 9 7954 0471</a></p>
     </footer>
 
     <!-- WHATSAPP FLOAT -->
-    <a href="https://wa.me/56900000000?text=Hola!%20Me%20interesa%20un%20CLAWBOT%20Kiosk" class="whatsapp-float" target="_blank" title="Chatea por WhatsApp">💬</a>
+    <a href="https://wa.me/56979540471?text=Hola!%20Me%20interesa%20un%20CLAWBOT%20Kiosk" class="whatsapp-float" target="_blank" title="Chatea por WhatsApp">💬</a>
 
 </body>
 </html>
